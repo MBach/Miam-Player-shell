@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/MiamPlayerShell">
+        <file>mp.ico</file>
+    </qresource>
+</RCC>
