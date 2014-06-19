@@ -1,6 +1,7 @@
 #include "listwidget.h"
 
 #include <QApplication>
+#include <QGraphicsDropShadowEffect>
 #include <QStylePainter>
 
 #include <QtDebug>
@@ -10,6 +11,11 @@ ListWidget::ListWidget(QWidget *parent)
 {
 	this->setMouseTracking(true);
 	this->setIconSize(QSize(18, 18));
+	QGraphicsDropShadowEffect *dropShadow = new QGraphicsDropShadowEffect(this);
+	dropShadow->setBlurRadius(4.0);
+	dropShadow->setColor(QApplication::palette().mid().color());
+	dropShadow->setOffset(QPoint(2, 2));
+	this->setGraphicsEffect(dropShadow);
 }
 
 /** Redefined to force update the viewport. */
@@ -24,7 +30,6 @@ void ListWidget::paintEvent(QPaintEvent *)
 {
 	QStylePainter p(this->viewport());
 	static const int itemHeight = 22;
-	static const QList<int> indexes = QList<int>() << 3 << 4 << 5 << 8;
 
 	p.fillRect(viewport()->rect(), QColor(240, 240, 240));
 
@@ -59,8 +64,8 @@ void ListWidget::paintEvent(QPaintEvent *)
 		bool itemIsEnabled = true;
 		bool isHighLighted = false;
 
-		p.save();
 		// Highlighted rectangle
+		p.save();
 		if (r.contains(mapFromGlobal(QCursor::pos()))) {
 			p.setPen(QApplication::palette().highlight().color());
 			p.setBrush(QApplication::palette().highlight().color().lighter());
@@ -74,7 +79,7 @@ void ListWidget::paintEvent(QPaintEvent *)
 		p.drawPixmap(iconRect, it->icon().pixmap(iconSize()));
 
 		// Arrow
-		if (indexes.contains(i)) {
+		if (it->data(ListWidget::UR_ItemWithArrow).toBool()) {
 			QStyleOption o;
 			o.initFrom(this);
 			o.rect = QRect(width() - 20, r.y() + 7, 9, 9);

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>519</width>
-    <height>463</height>
+    <height>566</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,15 +15,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <widget class="QGroupBox" name="windowsShellGroupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
+    <widget class="QGroupBox" name="subMenuGroupBox">
      <property name="title">
-      <string>MiamPlayer Shell extension</string>
+      <string>Submenu</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -63,100 +57,69 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="3,3,1">
         <property name="spacing">
          <number>0</number>
         </property>
         <item>
-         <widget class="ListWidget" name="listWidget">
-          <property name="minimumSize">
-           <size>
-            <width>220</width>
-            <height>190</height>
-           </size>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>220</width>
-            <height>190</height>
-           </size>
-          </property>
-          <property name="verticalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="horizontalScrollBarPolicy">
-           <enum>Qt::ScrollBarAlwaysOff</enum>
-          </property>
-          <property name="editTriggers">
-           <set>QAbstractItemView::NoEditTriggers</set>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::SingleSelection</enum>
-          </property>
-          <property name="currentRow">
-           <number>-1</number>
-          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
-           <property name="text">
-            <string>Open</string>
-           </property>
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
+           <widget class="ListWidget" name="menu">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>220</width>
+              <height>190</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>300</width>
+              <height>210</height>
+             </size>
+            </property>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContents</enum>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="resizeMode">
+             <enum>QListView::Adjust</enum>
+            </property>
+            <property name="currentRow">
+             <number>-1</number>
+            </property>
+           </widget>
           </item>
           <item>
-           <property name="text">
-            <string>Open in new window</string>
-           </property>
+           <spacer name="verticalSpacer_4">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::MinimumExpanding</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>10</height>
+             </size>
+            </property>
+           </spacer>
           </item>
-          <item>
-           <property name="text">
-            <string/>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Share with</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Miam-Player</string>
-           </property>
-           <property name="icon">
-            <iconset resource="resources.qrc">
-             <normaloff>:/MiamPlayerShell/mp.ico</normaloff>:/MiamPlayerShell/mp.ico</iconset>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Include in Library</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Pin to Start</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string/>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Send to</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string/>
-           </property>
-          </item>
-         </widget>
+         </layout>
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
@@ -168,6 +131,9 @@
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
             <property name="sizeHint" stdset="0">
              <size>
               <width>20</width>
@@ -177,7 +143,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="ListWidget" name="listWidget_2">
+           <widget class="ListWidget" name="subMenu">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
               <horstretch>0</horstretch>
@@ -186,41 +152,44 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>200</width>
+              <width>230</width>
               <height>80</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>200</width>
+              <width>300</width>
               <height>80</height>
              </size>
             </property>
-            <item>
-             <property name="text">
-              <string>Send to current Playlist</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Send to a new Playlist</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Send to the Tag Editor</string>
-             </property>
-            </item>
+            <property name="verticalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="horizontalScrollBarPolicy">
+             <enum>Qt::ScrollBarAlwaysOff</enum>
+            </property>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustToContents</enum>
+            </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="resizeMode">
+             <enum>QListView::Adjust</enum>
+            </property>
+            <property name="currentRow">
+             <number>-1</number>
+            </property>
            </widget>
           </item>
           <item>
-           <spacer name="verticalSpacer">
+           <spacer name="verticalSpacer_5">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>20</width>
+              <width>0</width>
               <height>0</height>
              </size>
             </property>
@@ -229,20 +198,32 @@
          </layout>
         </item>
         <item>
-         <spacer name="horizontalSpacer">
+         <spacer name="horizontalSpacer_2">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Preferred</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
             <width>0</width>
-            <height>10</height>
+            <height>20</height>
            </size>
           </property>
          </spacer>
         </item>
        </layout>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="actionsGroupBox">
+     <property name="title">
+      <string>Available actions</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
        <widget class="QLabel" name="labelChooseActions">
         <property name="font">
@@ -259,7 +240,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="sendToCurrentPlaylistCheckBox">
+       <widget class="QCheckBox" name="sendToCurrentPlaylist">
         <property name="text">
          <string>Send to current Playlist</string>
         </property>
@@ -269,7 +250,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="sendToNewPlaylistCheckBox">
+       <widget class="QCheckBox" name="sendToNewPlaylist">
         <property name="text">
          <string>Send to a new Playlist</string>
         </property>
@@ -279,7 +260,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="sendToEditorCheckBox">
+       <widget class="QCheckBox" name="sendToEditor">
         <property name="text">
          <string>Send to the Tag Editor</string>
         </property>
@@ -289,12 +270,12 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="addToLibraryCheckBox">
+       <widget class="QCheckBox" name="addToLibrary">
         <property name="text">
          <string>Add to Library</string>
         </property>
         <property name="checked">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -305,6 +286,9 @@
     <spacer name="verticalSpacer_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeType">
+      <enum>QSizePolicy::MinimumExpanding</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
@@ -323,8 +307,6 @@
    <header>listwidget.h</header>
   </customwidget>
  </customwidgets>
- <resources>
-  <include location="resources.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

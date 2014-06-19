@@ -1,5 +1,23 @@
 <RCC>
     <qresource prefix="/MiamPlayerShell">
         <file>mp.ico</file>
+        <file>translations/MiamPlayerShell_ar.ts</file>
+        <file>translations/MiamPlayerShell_cs.ts</file>
+        <file>translations/MiamPlayerShell_de.ts</file>
+        <file>translations/MiamPlayerShell_en.ts</file>
+        <file>translations/MiamPlayerShell_es.ts</file>
+        <file>translations/MiamPlayerShell_fr.ts</file>
+        <file>translations/MiamPlayerShell_it.ts</file>
+        <file>translations/MiamPlayerShell_ja.ts</file>
+        <file>translations/MiamPlayerShell_kr.ts</file>
+        <file>translations/MiamPlayerShell_pt.ts</file>
+        <file>translations/MiamPlayerShell_ru.ts</file>
+        <file>translations/MiamPlayerShell_th.ts</file>
+        <file>translations/MiamPlayerShell_vn.ts</file>
+        <file>translations/MiamPlayerShell_zh.ts</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>translations/MiamPlayerShell_en.qm</file>
+        <file>translations/MiamPlayerShell_fr.qm</file>
     </qresource>
 </RCC>

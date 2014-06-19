@@ -42,6 +42,13 @@ public:
 	inline virtual bool providesView() const { return false; }
 
 	void setMediaPlayer(QWeakPointer<MediaPlayer>);
+
+private:
+	/** Adjust height of fake Context Menu. */
+	void resizeListWidget(QListWidget *list);
+
+private slots:
+	void toggleFeature(bool enabled);
 };
 
 #endif // MIAMPLAYERSHELL_H
