@@ -1,6 +1,6 @@
 QT      += widgets multimedia
 
-TARGET   = $$qtLibraryTarget(MiamPlayerShell)
+TARGET   = $$qtLibraryTarget(MiamShellGui)
 TEMPLATE = lib
 
 MiamPlayerBuildDirectory = C:\dev\Miam-Player-build-x64\MiamPlayer
