@@ -39,7 +39,7 @@ public:
 
 	inline virtual QString version() const { return "0.1"; }
 
-	inline virtual bool providesView() const { return false; }
+	inline virtual QWidget* providesView() { return NULL; }
 
 	void setMediaPlayer(QWeakPointer<MediaPlayer>);
 
