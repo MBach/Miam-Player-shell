@@ -1,28 +1,32 @@
 QT -= gui
-QT += axserver
 
-CONFIG += qt \
-    dll
-
-LIBS += -luser32 -lole32 -loleaut32 -lgdi32 -luuid
-
-# qaxserver.def and qaxserver.rc come from <qt>\src\activeqt\control
-DEF_FILE = qaxserver.def
-RC_FILE = qaxserver.rc
-
-# ##
-TARGET = MiamShell
-
+TARGET   = $$qtLibraryTarget(MiamPlayerShell)
 TEMPLATE = lib
 
-DEFINES += SHELLEXT_OVERLAY_LIBRARY
+MiamPlayerBuildDirectory = C:\dev\Miam-Player-build-x64\MiamPlayer
 
-SOURCES += shelloverlay.cpp \
-    dllmain.cpp
+CONFIG  += c++11
+CONFIG(debug, debug|release) {
+    target.path = $$MiamPlayerBuildDirectory\debug\
+}
 
-HEADERS += shelloverlay.h \
-    shellext_overlay_global.h
+CONFIG(release, debug|release) {
+    target.path = $$MiamPlayerBuildDirectory\release\
+}
 
-OTHER_FILES += qaxserver.rc \
-    qaxserver.def \
-    qtdemo.ico
+LIBS += -lshell32 -lcomctl32 -lshlwapi -lmsimg32 -ladvapi32 -lole32
+LIBS += -luser32 -loleaut32 -lgdi32 -luuid
+
+INSTALLS += target
+
+HEADERS += Bitmap.h \
+    MiamPlayerShell.h \
+    resource.h
+
+SOURCES += Bitmap.cpp \
+    MiamPlayerShell.cpp
+
+OTHER_FILES += export.def \
+    MiamPlayerShell.rc
+
+RC_FILE = MiamPlayerShell.rc
