@@ -85,6 +85,7 @@ private:
 	UINT m_menuID;
 	HMENU m_hMenu;
 	bool m_showIcon;
+
 	// Icon variables
 	TCHAR m_szFilePath[MAX_PATH];
 	TCHAR m_szModule[MAX_PATH];
@@ -116,15 +117,15 @@ public:
 	STDMETHODIMP QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags);
 	STDMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi);
 	STDMETHODIMP GetCommandString(UINT_PTR idCmd, UINT uFlags, UINT FAR *reserved, LPSTR pszName, UINT cchMax);
-	STDMETHODIMP HandleMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) { return HandleMenuMsg2(uMsg, wParam, lParam, NULL); };
+	STDMETHODIMP HandleMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) { return HandleMenuMsg2(uMsg, wParam, lParam, NULL); }
 	STDMETHODIMP HandleMenuMsg2(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *plResult);
 
 	// *** IPersistFile methods ***
-	STDMETHODIMP GetClassID(CLSID *)					{ return E_NOTIMPL; };
-	STDMETHODIMP IsDirty(void)									{ return E_NOTIMPL; };
-	STDMETHODIMP Save(LPCOLESTR, BOOL)	{ return E_NOTIMPL; };
-	STDMETHODIMP SaveCompleted(LPCOLESTR)			{ return E_NOTIMPL; };
-	STDMETHODIMP GetCurFile(LPOLESTR *)				{ return E_NOTIMPL; };
+	STDMETHODIMP GetClassID(CLSID *) { return E_NOTIMPL; }
+	STDMETHODIMP IsDirty(void) { return E_NOTIMPL; }
+	STDMETHODIMP Save(LPCOLESTR, BOOL) { return E_NOTIMPL; }
+	STDMETHODIMP SaveCompleted(LPCOLESTR) { return E_NOTIMPL; }
+	STDMETHODIMP GetCurFile(LPOLESTR *) { return E_NOTIMPL; }
 	STDMETHODIMP Load(LPCOLESTR pszFileName, DWORD dwMode);
 
 	// *** IExtractIcon methods ***

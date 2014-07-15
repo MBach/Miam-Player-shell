@@ -165,6 +165,8 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 			checkBox->setEnabled(true);
 		}
 	}
+	// Update the context menu
+	/// TODO
 }
 
 void MiamPlayerShell::setMediaPlayer(QWeakPointer<MediaPlayer> mediaPlayer)

@@ -5,6 +5,8 @@ TEMPLATE = lib
 
 MiamPlayerBuildDirectory = C:\dev\Miam-Player-build-x64\MiamPlayer
 
+DEFINES += MIAM_PLUGIN
+
 CONFIG  += c++11
 CONFIG(debug, debug|release) {
     target.path = $$MiamPlayerBuildDirectory\debug\
@@ -30,3 +32,4 @@ OTHER_FILES += export.def \
     MiamPlayerShell.rc
 
 RC_FILE = MiamPlayerShell.rc
+DEF_FILE = export.def

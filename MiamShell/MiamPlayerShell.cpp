@@ -21,8 +21,8 @@ HINSTANCE _hModule = NULL; // DLL Module.
 TCHAR szMiamPlayerName[] = TEXT("MiamPlayer.exe");
 TCHAR szDefaultMenutext[] = TEXT("Send to current playlist");
 
-TCHAR szShellExtensionTitle[] = TEXT("MiamPlayer");
-TCHAR szShellExtensionKey[] = TEXT("*\\shellex\\ContextMenuHandlers\\MiamPlayer");
+TCHAR szShellExtensionTitle[] = TEXT("MiamPlayerShell");
+TCHAR szShellExtensionKey[] = TEXT("*\\shellex\\ContextMenuHandlers\\MiamPlayerShell");
 
 #define szHelpTextA "Send to MiamPlayer"
 #define szHelpTextW L"Send to MiamPlayer"
@@ -64,7 +64,8 @@ struct DOREGSTRUCT {
 //---------------------------------------------------------------------------
 // DllMain
 //---------------------------------------------------------------------------
-int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/) {
+int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
+{
 	if (dwReason == DLL_PROCESS_ATTACH) {
 		_hModule = hInstance;
 	}
@@ -74,14 +75,16 @@ int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 //---------------------------------------------------------------------------
 // DllCanUnloadNow
 //---------------------------------------------------------------------------
-STDAPI DllCanUnloadNow(void) {
+STDAPI DllCanUnloadNow(void)
+{
 	return (_cRef == 0 ? S_OK : S_FALSE);
 }
 
 //---------------------------------------------------------------------------
 // DllGetClassObject
 //---------------------------------------------------------------------------
-STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppvOut) {
+STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppvOut)
+{
 	*ppvOut = NULL;
 	if (IsEqualIID(rclsid, CLSID_ShellExtension)) {
 		CShellExtClassFactory *pcf = new CShellExtClassFactory;
@@ -93,18 +96,21 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppvOut) {
 //---------------------------------------------------------------------------
 // DllRegisterServer
 //---------------------------------------------------------------------------
-STDAPI DllRegisterServer(void) {
+STDAPI DllRegisterServer(void)
+{
 	return (RegisterServer() ? S_OK : E_FAIL);
 }
 
 //---------------------------------------------------------------------------
 // DllUnregisterServer
 //---------------------------------------------------------------------------
-STDAPI DllUnregisterServer(void) {
+STDAPI DllUnregisterServer(void)
+{
 	return (UnregisterServer() ? S_OK : E_FAIL);
 }
 
-STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/) {
+STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/)
+{
 	if (bInstall) {
 		DialogBox(_hModule, MAKEINTRESOURCE(IDD_DIALOG_SETTINGS), NULL, (DLGPROC)&DlgProcSettings);
 		return S_OK;
@@ -118,7 +124,8 @@ STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/) {
 // RegisterServer
 // Create registry entries and setup the shell extension
 //---------------------------------------------------------------------------
-BOOL RegisterServer() {
+BOOL RegisterServer()
+{
 	int      i;
 	HKEY     hKey;
 	LRESULT  lResult;
@@ -192,7 +199,8 @@ BOOL RegisterServer() {
 //---------------------------------------------------------------------------
 // UnregisterServer
 //---------------------------------------------------------------------------
-BOOL UnregisterServer() {
+BOOL UnregisterServer()
+{
 	TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
 
 	RegDeleteKey(HKEY_CLASSES_ROOT, szShellExtensionKey);
@@ -215,21 +223,23 @@ BOOL UnregisterServer() {
 //---------------------------------------------------------------------------
 // MsgBox
 //---------------------------------------------------------------------------
-void MsgBox(LPCTSTR lpszMsg) {
+void MsgBox(LPCTSTR lpszMsg)
+{
 	MessageBox(NULL,
-		lpszMsg,
-		TEXT("MiamPlayer Extension"),
-		MB_OK);
+			   lpszMsg,
+			   TEXT("MiamPlayer Extension"),
+			   MB_OK);
 }
 
 //---------------------------------------------------------------------------
 // MsgBoxError
 //---------------------------------------------------------------------------
-void MsgBoxError(LPCTSTR lpszMsg) {
+void MsgBoxError(LPCTSTR lpszMsg)
+{
 	MessageBox(NULL,
-		lpszMsg,
-		TEXT("MiamPlayer Extension: Error"),
-		MB_OK | MB_ICONWARNING);
+			   lpszMsg,
+			   TEXT("MiamPlayer Extension: Error"),
+			   MB_OK | MB_ICONWARNING);
 }
 
 //---------------------------------------------------------------------------
@@ -249,7 +259,8 @@ BOOL CheckMiamPlayer(LPCTSTR path) {
 	return TRUE;
 }
 
-INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
 	static TCHAR customCommand[MAX_PATH] = {0};
 	static TCHAR customText[TITLE_SIZE] = {0};
 	static TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
@@ -405,12 +416,14 @@ CShellExtClassFactory::CShellExtClassFactory() :
 	_cRef++;
 }
 
-CShellExtClassFactory::~CShellExtClassFactory() {
+CShellExtClassFactory::~CShellExtClassFactory()
+{
 	_cRef--;
 }
 
 // *** IUnknown methods ***
-STDMETHODIMP CShellExtClassFactory::QueryInterface(REFIID riid, LPVOID FAR *ppv) {
+STDMETHODIMP CShellExtClassFactory::QueryInterface(REFIID riid, LPVOID FAR *ppv)
+{
 	*ppv = NULL;
 	if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IClassFactory)) {
 		*ppv = (LPCLASSFACTORY)this;
@@ -420,7 +433,8 @@ STDMETHODIMP CShellExtClassFactory::QueryInterface(REFIID riid, LPVOID FAR *ppv)
 	return E_NOINTERFACE;
 }
 
-STDMETHODIMP_(ULONG) CShellExtClassFactory::AddRef() {
+STDMETHODIMP_(ULONG) CShellExtClassFactory::AddRef()
+{
 	return ++m_cRef;
 }
 
@@ -433,7 +447,8 @@ STDMETHODIMP_(ULONG) CShellExtClassFactory::Release()
 }
 
 // *** IClassFactory methods ***
-STDMETHODIMP CShellExtClassFactory::CreateInstance(LPUNKNOWN pUnkOuter, REFIID riid, LPVOID *ppvObj) {
+STDMETHODIMP CShellExtClassFactory::CreateInstance(LPUNKNOWN pUnkOuter, REFIID riid, LPVOID *ppvObj)
+{
 	*ppvObj = NULL;
 	if (pUnkOuter)
 		return CLASS_E_NOAGGREGATION;
@@ -443,7 +458,8 @@ STDMETHODIMP CShellExtClassFactory::CreateInstance(LPUNKNOWN pUnkOuter, REFIID r
 	return pShellExt->QueryInterface(riid, ppvObj);
 }
 
-STDMETHODIMP CShellExtClassFactory::LockServer(BOOL /*fLock*/) {
+STDMETHODIMP CShellExtClassFactory::LockServer(BOOL /*fLock*/)
+{
 	return NOERROR;
 }
 
@@ -520,7 +536,8 @@ CShellExt::CShellExt() :
 	}
 }
 
-CShellExt::~CShellExt() {
+CShellExt::~CShellExt()
+{
 	if (m_winVer >= WINVER_VISTA) {
 		DeinitTheming();
 	}
@@ -530,7 +547,8 @@ CShellExt::~CShellExt() {
 	_cRef--;
 }
 // *** IUnknown methods ***
-STDMETHODIMP CShellExt::QueryInterface(REFIID riid, LPVOID FAR *ppv) {
+STDMETHODIMP CShellExt::QueryInterface(REFIID riid, LPVOID FAR *ppv)
+{
 	*ppv = NULL;
 	if (IsEqualIID(riid, IID_IUnknown)) {
 		//*ppv = (LPUNKNOWN)this;
@@ -555,11 +573,13 @@ STDMETHODIMP CShellExt::QueryInterface(REFIID riid, LPVOID FAR *ppv) {
 	return E_NOINTERFACE;
 }
 
-STDMETHODIMP_(ULONG) CShellExt::AddRef() {
+STDMETHODIMP_(ULONG) CShellExt::AddRef()
+{
 	return ++m_cRef;
 }
 
-STDMETHODIMP_(ULONG) CShellExt::Release() {
+STDMETHODIMP_(ULONG) CShellExt::Release()
+{
 	if (--m_cRef)
 		return m_cRef;
 	delete this;
@@ -567,7 +587,8 @@ STDMETHODIMP_(ULONG) CShellExt::Release() {
 }
 
 // *** IShellExtInit methods ***
-STDMETHODIMP CShellExt::Initialize(LPCITEMIDLIST /*pIDFolder*/, LPDATAOBJECT pDataObj, HKEY /*hRegKey*/) {
+STDMETHODIMP CShellExt::Initialize(LPCITEMIDLIST /*pIDFolder*/, LPDATAOBJECT pDataObj, HKEY /*hRegKey*/)
+{
 	if (m_pDataObj) {
 		m_pDataObj->Release();
 		m_pDataObj = NULL;
@@ -580,7 +601,8 @@ STDMETHODIMP CShellExt::Initialize(LPCITEMIDLIST /*pIDFolder*/, LPDATAOBJECT pDa
 }
 
 // *** IContextMenu methods ***
-STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmdFirst, UINT /*idCmdLast*/, UINT /*uFlags*/) {
+STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmdFirst, UINT /*idCmdLast*/, UINT /*uFlags*/)
+{
 	UINT idCmd = idCmdFirst;
 
 	FORMATETC fmte = {
@@ -648,7 +670,8 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 	return ResultFromShort(idCmd-idCmdFirst);
 }
 
-STDMETHODIMP CShellExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi) {
+STDMETHODIMP CShellExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
+{
 	HRESULT hr = E_INVALIDARG;
 
 	if (!HIWORD(lpcmi->lpVerb)) {
@@ -664,7 +687,8 @@ STDMETHODIMP CShellExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi) {
 	return hr;
 }
 
-STDMETHODIMP CShellExt::GetCommandString(UINT_PTR, UINT uFlags, UINT FAR *, LPSTR pszName, UINT cchMax) {
+STDMETHODIMP CShellExt::GetCommandString(UINT_PTR, UINT uFlags, UINT FAR *, LPSTR pszName, UINT cchMax)
+{
 	LPWSTR wBuffer = (LPWSTR) pszName;
 	if (uFlags == GCS_HELPTEXTA) {
 		lstrcpynA(pszName, szHelpTextA, cchMax);
@@ -676,7 +700,8 @@ STDMETHODIMP CShellExt::GetCommandString(UINT_PTR, UINT uFlags, UINT FAR *, LPST
 	return E_NOTIMPL;
 }
 
-STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, LRESULT *plResult) {
+STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, LRESULT *plResult)
+{
 
 	//Setup popup menu stuff (ownerdrawn)
 	DWORD menuIconWidth = GetSystemMetrics(SM_CXMENUCHECK);
@@ -684,46 +709,42 @@ STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 	DWORD menuIconPadding = 2;	//+1 pixels on each side, is this fixed?
 
 	switch(uMsg) {
-		case WM_MEASUREITEM: {	//for owner drawn menu
-			MEASUREITEMSTRUCT * lpdis = (MEASUREITEMSTRUCT*) lParam;
+	case WM_MEASUREITEM: {	//for owner drawn menu
+		MEASUREITEMSTRUCT * lpdis = (MEASUREITEMSTRUCT*) lParam;
 
-			if (lpdis == NULL)// || lpdis->itemID != m_menuID)
-				break;
-
-			if (m_showIcon) {
-				lpdis->itemWidth = 0;	//0 seems to work for 98 and up
-				if (lpdis->itemHeight < menuIconHeight)
-					lpdis->itemHeight = menuIconHeight;
-			}
-
-			if (plResult)
-				*plResult = TRUE;
-			break; }
-		case WM_DRAWITEM: {		//for owner drawn menu
-			//Assumes proper font already been set
-			DRAWITEMSTRUCT * lpdis = (DRAWITEMSTRUCT*) lParam;
-			if ((lpdis == NULL) || (lpdis->CtlType != ODT_MENU))
-				break;
-
-			if (m_showIcon) {
-				HICON miamPlayerIcon = NULL;
-
-				HRESULT hr = LoadShellIcon(menuIconWidth, menuIconHeight, &miamPlayerIcon);
-
-				if (SUCCEEDED(hr)) {
-					DrawIconEx(lpdis->hDC, menuIconPadding, menuIconPadding, miamPlayerIcon, menuIconWidth, menuIconHeight, 0, NULL, DI_NORMAL);
-					DestroyIcon(miamPlayerIcon);
-				}
-			}
-
-			if (plResult)
-				*plResult = TRUE;
-
-			break; }
-		default:
+		if (lpdis == NULL)// || lpdis->itemID != m_menuID)
 			break;
+		if (m_showIcon) {
+			lpdis->itemWidth = 0;	//0 seems to work for 98 and up
+			if (lpdis->itemHeight < menuIconHeight)
+				lpdis->itemHeight = menuIconHeight;
+		}
+		if (plResult)
+			*plResult = TRUE;
+		break;
 	}
+	case WM_DRAWITEM: {		//for owner drawn menu
+		//Assumes proper font already been set
+		DRAWITEMSTRUCT * lpdis = (DRAWITEMSTRUCT*) lParam;
+		if ((lpdis == NULL) || (lpdis->CtlType != ODT_MENU))
+			break;
+		if (m_showIcon) {
+			HICON miamPlayerIcon = NULL;
 
+			HRESULT hr = LoadShellIcon(menuIconWidth, menuIconHeight, &miamPlayerIcon);
+
+			if (SUCCEEDED(hr)) {
+				DrawIconEx(lpdis->hDC, menuIconPadding, menuIconPadding, miamPlayerIcon, menuIconWidth, menuIconHeight, 0, NULL, DI_NORMAL);
+				DestroyIcon(miamPlayerIcon);
+			}
+		}
+		if (plResult)
+			*plResult = TRUE;
+		break;
+	}
+	default:
+		break;
+	}
 	return S_OK;
 }
 
@@ -741,7 +762,7 @@ HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*
 	if (ext[0] == '.') {
 		ext++;
 	}
-	int copySize = std::min(m_nameMaxLength+1, MAX_PATH);	//+1 to take zero terminator in account
+	int copySize = std::min(m_nameMaxLength + 1, MAX_PATH);	//+1 to take zero terminator in account
 	lstrcpyn(m_szFilePath, ext, copySize);
 	m_nameLength = lstrlen(m_szFilePath);
 	CharUpperBuff(m_szFilePath, m_nameLength);
@@ -751,7 +772,7 @@ HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*
 // *** IExtractIcon methods ***
 STDMETHODIMP CShellExt::GetIconLocation(UINT uFlags, LPTSTR szIconFile, UINT cchMax, int * piIndex, UINT * pwFlags) {
 	*pwFlags = 0;
-	if (uFlags & GIL_DEFAULTICON || m_szFilePath[0] == 0 || !m_isDynamic) {	//return regular N++ icon if requested OR the extension is bad OR static icon
+	if (uFlags & GIL_DEFAULTICON || m_szFilePath[0] == 0 || !m_isDynamic) {	//return regular MiamPlayer icon if requested OR the extension is bad OR static icon
 		if (!m_useCustom) {
 			lstrcpyn(szIconFile, m_szModule, cchMax);
 			*piIndex = 0;
@@ -928,7 +949,6 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 		InvalidateIcon(phiconSmall, phiconLarge);
 		return S_FALSE;
 	}
-
 	return S_OK;
 }
 
@@ -947,11 +967,11 @@ void InvalidateIcon(HICON * iconSmall, HICON * iconLarge) {
 STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPCSTR /*pszCmd*/, LPCSTR /*pszParam*/, int iShowCmd) {
 	TCHAR szFilename[MAX_PATH];
 	TCHAR szCustom[MAX_PATH];
-	TCHAR szNotepadExecutableFilename[3 * MAX_PATH]; // Should be able to contain szFilename plus szCustom plus some additional characters.
+	TCHAR szMiamExecutableFilename[3 * MAX_PATH]; // Should be able to contain szFilename plus szCustom plus some additional characters.
 	LPTSTR pszCommand;
 	size_t bytesRequired = 1;
 
-	memset(szNotepadExecutableFilename, 0, sizeof(TCHAR) * 3 * MAX_PATH);
+	memset(szMiamExecutableFilename, 0, sizeof(TCHAR) * 3 * MAX_PATH);
 
 	TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
 	DWORD regSize = 0;
@@ -968,7 +988,7 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 
 	result = RegQueryValueEx(settingKey, TEXT("Path"), NULL, NULL, NULL, &regSize);
 	if (result == ERROR_SUCCESS) {
-		bytesRequired += regSize+2;
+		bytesRequired += regSize + 2;
 	} else {
 		MsgBoxError(TEXT("Cannot read path to executable."));
 		RegCloseKey(settingKey);
@@ -997,13 +1017,13 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	regSize = (DWORD)MAX_PATH*sizeof(TCHAR);
 	result = RegQueryValueEx(settingKey, TEXT("Path"), NULL, NULL, (LPBYTE)(szFilename), &regSize);
 	szFilename[MAX_PATH-1] = 0;
-	lstrcat(szNotepadExecutableFilename, TEXT("\""));
-	lstrcat(szNotepadExecutableFilename, szFilename);
-	lstrcat(szNotepadExecutableFilename, TEXT("\""));
+	lstrcat(szMiamExecutableFilename, TEXT("\""));
+	lstrcat(szMiamExecutableFilename, szFilename);
+	lstrcat(szMiamExecutableFilename, TEXT("\""));
 	result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, (LPBYTE)(szCustom), &pathSize);
 	if (result == ERROR_SUCCESS) {
-		lstrcat(szNotepadExecutableFilename, TEXT(" "));
-		lstrcat(szNotepadExecutableFilename, szCustom);
+		lstrcat(szMiamExecutableFilename, TEXT(" "));
+		lstrcat(szMiamExecutableFilename, szCustom);
 	}
 	RegCloseKey(settingKey);
 
@@ -1017,9 +1037,9 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	const UINT kiBatchSize = m_winVer > WINVER_XP ? 100 : 4;
 
 	UINT iFileIndex = 0;
-	while(iFileIndex < m_cbFiles) {
+	while (iFileIndex < m_cbFiles) {
 		memset(pszCommand, 0, bytesRequired);
-		lstrcat(pszCommand, szNotepadExecutableFilename);
+		lstrcat(pszCommand, szMiamExecutableFilename);
 		for (UINT iBatchSizeCounter = 0; iFileIndex < m_cbFiles && iBatchSizeCounter < kiBatchSize; iBatchSizeCounter++) {
 			DragQueryFile((HDROP)m_stgMedium.hGlobal, iFileIndex, szFilename, MAX_PATH);
 			lstrcat(pszCommand, TEXT(" \""));
@@ -1054,9 +1074,6 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 			}
 		}
 	}
-
-
-
 	CoTaskMemFree(pszCommand);
 	return NOERROR;
 }
