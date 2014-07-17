@@ -1,4 +1,6 @@
 TEMPLATE = subdirs
 
-SUBDIRS += MiamShellGui \
-    MiamShell
+CONFIG += ordered
+
+SUBDIRS += MiamShell \
+    MiamShellGui

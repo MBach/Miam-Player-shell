@@ -22,11 +22,11 @@ LIBS += -luser32 -loleaut32 -lgdi32 -luuid
 INSTALLS += target
 
 HEADERS += Bitmap.h \
-    MiamPlayerShell.h \
-    resource.h
+    resource.h \
+    CShellExt.h
 
 SOURCES += Bitmap.cpp \
-    MiamPlayerShell.cpp
+    CShellExt.cpp
 
 OTHER_FILES += export.def \
     MiamPlayerShell.rc

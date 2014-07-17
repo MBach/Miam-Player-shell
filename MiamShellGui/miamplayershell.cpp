@@ -2,6 +2,11 @@
 
 #include "settings.h"
 
+#include <QDir>
+#include <QLibrary>
+
+#include <QtDebug>
+
 MiamPlayerShell::MiamPlayerShell()
 	: QWidget(NULL)
 {
@@ -72,6 +77,24 @@ QWidget* MiamPlayerShell::configPage()
 		settings->setValue("MiamPlayerShell/hasSubMenu", !b);
 		this->resizeListWidget(_config.menu);
 		this->resizeListWidget(_config.subMenu);
+
+		/// XXX
+		QLibrary *library = new QLibrary(QDir::currentPath() + "/release/MiamPlayerShell.dll", this);
+		if (library->load()) {
+			typedef void* (*CShellExt_create)(void);
+			typedef bool (*CShellExt_toggle)(void *);
+
+			CShellExt_create cShellExt_create = NULL;
+			CShellExt_toggle cShellExt_toggle = NULL;
+			cShellExt_create = (CShellExt_create) library->resolve("CShellExt_create");
+			cShellExt_toggle = (CShellExt_toggle) library->resolve("CShellExt_toggle");
+
+			void *object = cShellExt_create();
+			bool ok = cShellExt_toggle(object);
+			qDebug() << "So what?" << ok;
+		}
+		qDebug() << "QLibrary" << library->fileName() << library->isLoaded();
+		/// XXX
 	});
 
 	connect(_config.sendToCurrentPlaylist, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
@@ -167,6 +190,7 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	}
 	// Update the context menu
 	/// TODO
+
 }
 
 void MiamPlayerShell::setMediaPlayer(QWeakPointer<MediaPlayer> mediaPlayer)

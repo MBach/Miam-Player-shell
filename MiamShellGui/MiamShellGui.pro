@@ -6,6 +6,7 @@ TEMPLATE = lib
 MiamPlayerBuildDirectory = C:\dev\Miam-Player-build-x64\MiamPlayer
 
 DEFINES += MIAM_PLUGIN
+DEFINES += MIAM_PLUGIN_DLL
 
 CONFIG  += c++11
 CONFIG(debug, debug|release) {
