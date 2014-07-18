@@ -129,5 +129,5 @@ public:
 	STDMETHODIMP Extract(LPCTSTR pszFile, UINT nIconIndex, HICON * phiconLarge, HICON * phiconSmall, UINT nIconSize);
 
 	/// TEST
-	void toggleSubMenu();
+	void toggleSubMenu(bool disabled);
 };

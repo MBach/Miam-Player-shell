@@ -6,6 +6,7 @@
 #include "mediaplayer.h"
 #include "listwidget.h"
 
+#include <QLibrary>
 #include <QWidget>
 
 #include "ui_config.h"
@@ -25,6 +26,7 @@ class MIAMCORE_LIBRARY MiamPlayerShell : public QWidget, public MediaPlayerPlugi
 private:
 	Ui::MiamPlayerShellConfigPage _config;
 	QWeakPointer<MediaPlayer> _mediaPlayer;
+	QLibrary *_library;
 
 public:
 	MiamPlayerShell();
@@ -49,6 +51,8 @@ private:
 
 private slots:
 	void toggleFeature(bool enabled);
+
+	void toggleSubMenu(bool disabled);
 };
 
 #endif // MIAMPLAYERSHELL_H

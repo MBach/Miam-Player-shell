@@ -10,6 +10,7 @@
 MiamPlayerShell::MiamPlayerShell()
 	: QWidget(NULL)
 {
+	_library = new QLibrary(QCoreApplication::applicationDirPath() + "/MiamPlayerShell.dll", this);
 }
 
 QWidget* MiamPlayerShell::configPage()
@@ -54,48 +55,7 @@ QWidget* MiamPlayerShell::configPage()
 	Settings *settings = Settings::getInstance();
 
 	// Swap items from one context menu to another
-	connect(_config.radioButtonDisableSubMenu, &QCheckBox::toggled, this, [=](bool b) {
-		_config.subMenu->setVisible(!b);
-		if (b) {
-			// Move items from Submenu to Menu
-			QListWidgetItem *item = _config.menu->takeItem(4);
-			for (int i = _config.subMenu->count() - 1; i >= 0; i--) {
-				_config.menu->insertItem(4, _config.subMenu->takeItem(i));
-			}
-			_config.subMenu->addItem(item);
-		} else {
-			// Move back items from Menu to Submenu
-			QListWidgetItem *item = _config.subMenu->takeItem(0);
-			for (int i = _config.menu->count() - 1; i >= 0; i--) {
-				QListWidgetItem *it = _config.menu->item(i);
-				if (it->data(ListWidget::UR_IsMovableToSubMenu).toBool()) {
-					_config.subMenu->insertItem(0, _config.menu->takeItem(i));
-				}
-			}
-			_config.menu->insertItem(4, item);
-		}
-		settings->setValue("MiamPlayerShell/hasSubMenu", !b);
-		this->resizeListWidget(_config.menu);
-		this->resizeListWidget(_config.subMenu);
-
-		/// XXX
-		QLibrary *library = new QLibrary(QDir::currentPath() + "/release/MiamPlayerShell.dll", this);
-		if (library->load()) {
-			typedef void* (*CShellExt_create)(void);
-			typedef bool (*CShellExt_toggle)(void *);
-
-			CShellExt_create cShellExt_create = NULL;
-			CShellExt_toggle cShellExt_toggle = NULL;
-			cShellExt_create = (CShellExt_create) library->resolve("CShellExt_create");
-			cShellExt_toggle = (CShellExt_toggle) library->resolve("CShellExt_toggle");
-
-			void *object = cShellExt_create();
-			bool ok = cShellExt_toggle(object);
-			qDebug() << "So what?" << ok;
-		}
-		qDebug() << "QLibrary" << library->fileName() << library->isLoaded();
-		/// XXX
-	});
+	connect(_config.radioButtonDisableSubMenu, &QCheckBox::toggled, this, &MiamPlayerShell::toggleSubMenu);
 
 	connect(_config.sendToCurrentPlaylist, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 	connect(_config.sendToNewPlaylist, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
@@ -191,6 +151,50 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	// Update the context menu
 	/// TODO
 
+}
+
+void MiamPlayerShell::toggleSubMenu(bool disabled)
+{
+	_config.subMenu->setVisible(!disabled);
+	if (disabled) {
+		// Move items from Submenu to Menu
+		QListWidgetItem *item = _config.menu->takeItem(4);
+		for (int i = _config.subMenu->count() - 1; i >= 0; i--) {
+			_config.menu->insertItem(4, _config.subMenu->takeItem(i));
+		}
+		_config.subMenu->addItem(item);
+	} else {
+		// Move back items from Menu to Submenu
+		QListWidgetItem *item = _config.subMenu->takeItem(0);
+		for (int i = _config.menu->count() - 1; i >= 0; i--) {
+			QListWidgetItem *it = _config.menu->item(i);
+			if (it->data(ListWidget::UR_IsMovableToSubMenu).toBool()) {
+				_config.subMenu->insertItem(0, _config.menu->takeItem(i));
+			}
+		}
+		_config.menu->insertItem(4, item);
+	}
+	Settings::getInstance()->setValue("MiamPlayerShell/hasSubMenu", !disabled);
+	this->resizeListWidget(_config.menu);
+	this->resizeListWidget(_config.subMenu);
+
+	typedef void* (*CShellExt_create)(void);
+	typedef bool (*CShellExt_toggle)(void *, bool);
+	static CShellExt_create cShellExt_create = NULL;
+	static CShellExt_toggle cShellExt_toggle = NULL;
+
+	if (_library->isLoaded()) {
+		void *object = cShellExt_create();
+		cShellExt_toggle(object, disabled);
+	} else {
+		if (_library->load()) {
+			cShellExt_create = (CShellExt_create) _library->resolve("CShellExt_create");
+			cShellExt_toggle = (CShellExt_toggle) _library->resolve("CShellExt_toggle");
+
+			void *object = cShellExt_create();
+			cShellExt_toggle(object, disabled);
+		}
+	}
 }
 
 void MiamPlayerShell::setMediaPlayer(QWeakPointer<MediaPlayer> mediaPlayer)
