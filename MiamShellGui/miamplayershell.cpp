@@ -4,6 +4,7 @@
 
 #include <QDir>
 #include <QLibrary>
+#include <QProcess>
 
 #include <QtDebug>
 
@@ -11,6 +12,29 @@ MiamPlayerShell::MiamPlayerShell()
 	: QWidget(NULL)
 {
 	_library = new QLibrary(QCoreApplication::applicationDirPath() + "/MiamPlayerShell.dll", this);
+	if (_library->load()) {
+		//typedef void* (*CShellExt_create)(void);
+		//CShellExt_create cShellExt_create = (CShellExt_create) _library->resolve("CShellExt_create");
+		//_cShellExt = cShellExt_create();
+		//cShellExt_toggleSubMenu = (CShellExt_toggleSubMenu) _library->resolve("CShellExt_toggleSubMenu");
+		//disable = (CShellExt_disable) _library->resolve("CShellExt_disable");
+	}
+}
+
+MiamPlayerShell::~MiamPlayerShell()
+{
+	delete _library;
+}
+
+void MiamPlayerShell::cleanUpBeforeDestroy()
+{
+	// Disable shell extension
+	QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:DisableContextMenu" << "/s" << _library->fileName());
+}
+
+void MiamPlayerShell::init()
+{
+	QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:EnableContextMenu" << "/s" << _library->fileName());
 }
 
 QWidget* MiamPlayerShell::configPage()
@@ -178,23 +202,7 @@ void MiamPlayerShell::toggleSubMenu(bool disabled)
 	this->resizeListWidget(_config.menu);
 	this->resizeListWidget(_config.subMenu);
 
-	typedef void* (*CShellExt_create)(void);
-	typedef bool (*CShellExt_toggle)(void *, bool);
-	static CShellExt_create cShellExt_create = NULL;
-	static CShellExt_toggle cShellExt_toggle = NULL;
-
-	if (_library->isLoaded()) {
-		void *object = cShellExt_create();
-		cShellExt_toggle(object, disabled);
-	} else {
-		if (_library->load()) {
-			cShellExt_create = (CShellExt_create) _library->resolve("CShellExt_create");
-			cShellExt_toggle = (CShellExt_toggle) _library->resolve("CShellExt_toggle");
-
-			void *object = cShellExt_create();
-			cShellExt_toggle(object, disabled);
-		}
-	}
+	//cShellExt_toggleSubMenu(_cShellExt, disabled);
 }
 
 void MiamPlayerShell::setMediaPlayer(QWeakPointer<MediaPlayer> mediaPlayer)

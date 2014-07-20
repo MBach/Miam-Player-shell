@@ -3,6 +3,7 @@
 #include "resource.h"
 #include <shellapi.h>
 #include <algorithm>
+#include <wchar.h>
 
 #ifndef RGBA
 #define RGBA(r,g,b,a)        ((COLORREF)( (((DWORD)(BYTE)(a))<<24) |     RGB(r,g,b) ))
@@ -111,10 +112,26 @@ STDAPI DllUnregisterServer(void)
 	return (UnregisterServer() ? S_OK : E_FAIL);
 }
 
-STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/)
+STDAPI DllInstall(BOOL bInstall, LPCWSTR pszCmdLine)
 {
 	if (bInstall) {
-		DialogBox(_hModule, MAKEINTRESOURCE(IDD_DIALOG_SETTINGS), NULL, (DLGPROC)&DlgProcSettings);
+		/// Suck a hacky way to reuse Notepad++ code! But who cares?
+		/// This code REALLY needs to be refactored
+		/// OMG C routines everywhere
+		if (pszCmdLine != NULL) {
+			if (wcscmp(pszCmdLine, L"DisableContextMenu") == 0) {
+				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_UNCHECKED);
+			} else if (wcscmp(pszCmdLine, L"EnableContextMenu") == 0) {
+				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_CHECKED);
+			} else if (wcscmp(pszCmdLine, L"DisableSubMenu") == 0) {
+				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_UNCHECKED);
+			} else if (wcscmp(pszCmdLine, L"EnableSubMenu") == 0) {
+				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_CHECKED);
+			}
+			DlgProcSettings(NULL, WM_COMMAND, IDOK, NULL);
+		} else {
+			DialogBox(_hModule, MAKEINTRESOURCE(IDD_DIALOG_SETTINGS), NULL, (DLGPROC)&DlgProcSettings);
+		}
 		return S_OK;
 	} else {
 		// MsgBoxError(TEXT("Uninstalling not supported, use DllUnregisterServer instead"));
@@ -308,9 +325,9 @@ INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 				size = sizeof(DWORD);
 				result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasSubMenu), &size);
-				/*if (result != ERROR_SUCCESS) {
+				if (result != ERROR_SUCCESS) {
 					hasSubMenu = 1;
-				}*/
+				}
 
 				RegCloseKey(settingKey);
 			}
@@ -344,7 +361,7 @@ INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
 						result = RegSetValueEx(settingKey, TEXT("Dynamic"), 0, REG_DWORD, (LPBYTE)&isDynamic, sizeof(DWORD));
 						result = RegSetValueEx(settingKey, TEXT("ShowIcon"), 0, REG_DWORD, (LPBYTE)&useMenuIcon, sizeof(DWORD));
-						result = RegSetValueEx(settingKey, TEXT("HasSubMenu"), 0, REG_DWORD, (LPBYTE)&hasSubMenu, sizeof(DWORD));
+						//result = RegSetValueEx(settingKey, TEXT("HasSubMenu"), 0, REG_DWORD, (LPBYTE)&hasSubMenu, sizeof(DWORD));
 
 						RegCloseKey(settingKey);
 					}
@@ -370,19 +387,30 @@ INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 						RegDeleteKey(HKEY_CLASSES_ROOT, TEXT("MiamPlayer_file\\shellex"));
 					}
 
+					/*if (hasSubMenu == 1) {
+						result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szShellExtensionKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
+						if (result == ERROR_SUCCESS) {
+							result = RegSetValueEx(settingKey, NULL, 0,REG_SZ, (LPBYTE)szGUID, (lstrlen(szGUID)+1)*sizeof(TCHAR));
+							RegCloseKey(settingKey);
+						}
+					} else if (hasSubMenu == 0) {
+						RegDeleteKey(HKEY_CLASSES_ROOT, szShellExtensionKey);
+					}*/
+
 					PostMessage(hwndDlg, WM_CLOSE, 0, 0);
 					break; }
 				case IDC_CHECK_USECONTEXT: {
-					int state = Button_GetCheck((HWND)lParam);
-					if (state == BST_CHECKED)
+					int state = (int)lParam;
+					if (state == BST_CHECKED) {
 						showMenu = 1;
-					else if (state == BST_UNCHECKED)
+					} else if (state == BST_UNCHECKED) {
 						showMenu = 0;
-					else
+					} else {
 						showMenu = 2;
+					}
 					break; }
 				case IDC_CHECK_USEICON: {
-					int state = Button_GetCheck((HWND)lParam);
+					int state = (int)lParam;
 					if (state == BST_CHECKED)
 						showIcon = 1;
 					else if (state == BST_UNCHECKED)
@@ -399,6 +427,13 @@ INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM 
 					break; }
 				case IDC_CHECK_ISDYNAMIC: {
 					int state = Button_GetCheck((HWND)lParam);
+					if (state == BST_CHECKED)
+						isDynamic = 1;
+					else
+						isDynamic = 0;
+					break; }
+				case IDC_CHECK_USESUBMENU: {
+					int state = (int)lParam;
 					if (state == BST_CHECKED)
 						isDynamic = 1;
 					else
@@ -1174,6 +1209,7 @@ void CShellExt::toggleSubMenu(bool disabled)
 	RegCloseKey(settingKey);
 }
 
+/*
 #ifndef CShellExtExport
 #define CShellExtExport
 
@@ -1185,7 +1221,7 @@ extern "C"
 		return new CShellExt();
 	}
 
-	DLL_API bool CShellExt_toggle(void *obj, bool disabled)
+	DLL_API bool CShellExt_toggleSubMenu(void *obj, bool disabled)
 	{
 		CShellExt *inst = reinterpret_cast<CShellExt*>(obj);
 		if (inst) {
@@ -1194,6 +1230,12 @@ extern "C"
 		}
 		return false;
 	}
+
+	DLL_API bool CShellExt_disable(void)
+	{
+		return DllUnregisterServer();
+	}
 }
 
 #endif
+*/
