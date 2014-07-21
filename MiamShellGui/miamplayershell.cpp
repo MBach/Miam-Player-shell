@@ -122,6 +122,8 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	QCheckBox *checkBox = qobject_cast<QCheckBox*>(sender());
 	Settings *settings = Settings::getInstance();
 	settings->setValue("MiamPlayerShell/" + checkBox->objectName(), enabled);
+	// Convert first letter: "sendToCurrentPlaylist" -> "SendToCurrentPlaylist"
+	QString command = checkBox->objectName().at(0).toUpper() + checkBox->objectName().right(checkBox->objectName().length() - 1);
 
 	if (settings->value("MiamPlayerShell/hasSubMenu").toBool()) {
 		list = _config.subMenu;
@@ -141,6 +143,7 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 				break;
 			}
 		}
+		//command.prepend("/i:Enable");
 	} else {
 		// Remove item
 		for (int i = 0; i < list->count(); i++) {
@@ -149,6 +152,16 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 				break;
 			}
 		}
+		//command.prepend("/i:Disable");
+	}
+	//QProcess::startDetached("regsvr32", QStringList() << "/n" << command << "/s" << _library->fileName());
+	//QSettings s;
+	qDebug() << command;
+	QSettings s("HKEY_CLASSES_ROOT\\CLSID\\{D38AFDB7-E7BA-4F02-A1EF-D8DCBA4E7135}\\Settings", QSettings::NativeFormat);
+	if (enabled) {
+		s.setValue("Has" + command, 1l);
+	} else {
+		s.setValue("Has" + command, 0l);
 	}
 
 	this->resizeListWidget(list);
@@ -174,7 +187,6 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	}
 	// Update the context menu
 	/// TODO
-
 }
 
 void MiamPlayerShell::toggleSubMenu(bool disabled)
@@ -202,7 +214,11 @@ void MiamPlayerShell::toggleSubMenu(bool disabled)
 	this->resizeListWidget(_config.menu);
 	this->resizeListWidget(_config.subMenu);
 
-	//cShellExt_toggleSubMenu(_cShellExt, disabled);
+	if (disabled) {
+		QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:DisableSubMenu" << "/s" << _library->fileName());
+	} else {
+		QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:EnableSubMenu" << "/s" << _library->fileName());
+	}
 }
 
 void MiamPlayerShell::setMediaPlayer(QWeakPointer<MediaPlayer> mediaPlayer)

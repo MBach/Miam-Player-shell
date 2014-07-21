@@ -20,7 +20,10 @@ HINSTANCE _hModule = NULL; // DLL Module.
 
 //Menu
 TCHAR szMiamPlayerName[] = TEXT("MiamPlayer.exe");
-TCHAR szDefaultMenutext[] = TEXT("Send to current playlist");
+TCHAR szDefaultSendToCurrentPlaylist[] = TEXT("Send to current Playlist");
+TCHAR szDefaultSendToNewPlaylist[] = TEXT("Send to new Playlist");
+TCHAR szDefaultSendToTagEditor[] = TEXT("Send to Tag Editor");
+TCHAR szDefaultAddToLibrary[] = TEXT("Add to Library");
 
 TCHAR szShellExtensionTitle[] = TEXT("MiamPlayerShell");
 TCHAR szShellExtensionKey[] = TEXT("*\\shellex\\ContextMenuHandlers\\MiamPlayerShell");
@@ -30,11 +33,12 @@ TCHAR szShellExtensionKey[] = TEXT("*\\shellex\\ContextMenuHandlers\\MiamPlayerS
 TCHAR szMenuTitle[TITLE_SIZE];
 TCHAR szDefaultCustomcommand[] = TEXT("");
 
-//Icon
-DWORD isDynamic = 1;
 DWORD maxText = 25;
-DWORD showIcon = 1;
-DWORD hasSubMenu = 1;
+DWORD hasSubMenu = TRUE;
+BOOL hasSendToCurrentPlaylist = TRUE;
+BOOL hasSendToNewPlaylist = TRUE;
+BOOL hasSendToTagEditor = TRUE;
+BOOL hasAddToLibrary = TRUE;
 
 //Forward function declarations
 extern "C" int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved);
@@ -43,8 +47,7 @@ STDAPI DllUnregisterServer(void);
 
 BOOL RegisterServer();
 BOOL UnregisterServer();
-// void MsgBox(LPCTSTR lpszMsg);
-// void MsgBoxError(LPCTSTR lpszMsg);
+void MsgBoxError(LPCTSTR lpszMsg);
 BOOL CheckMiamPlayer(LPCTSTR path);
 INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void InvalidateIcon(HICON * iconSmall, HICON * iconLarge);
@@ -112,6 +115,9 @@ STDAPI DllUnregisterServer(void)
 	return (UnregisterServer() ? S_OK : E_FAIL);
 }
 
+// Replace code with MFC classes?
+// #include <atlbase.h>
+
 STDAPI DllInstall(BOOL bInstall, LPCWSTR pszCmdLine)
 {
 	if (bInstall) {
@@ -120,21 +126,24 @@ STDAPI DllInstall(BOOL bInstall, LPCWSTR pszCmdLine)
 		/// OMG C routines everywhere
 		if (pszCmdLine != NULL) {
 			if (wcscmp(pszCmdLine, L"DisableContextMenu") == 0) {
-				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_UNCHECKED);
+				DlgProcSettings(NULL, NULL, IDC_CHECK_USECONTEXT, FALSE);
+				//MsgBoxError(TEXT("DisableContextMenu"));
 			} else if (wcscmp(pszCmdLine, L"EnableContextMenu") == 0) {
-				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_CHECKED);
+				DlgProcSettings(NULL, NULL, IDC_CHECK_USECONTEXT, TRUE);
+				//MsgBoxError(TEXT("EnableContextMenu"));
 			} else if (wcscmp(pszCmdLine, L"DisableSubMenu") == 0) {
-				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_UNCHECKED);
+				DlgProcSettings(NULL, NULL, IDC_CHECK_USESUBMENU, FALSE);
+				//MsgBoxError(TEXT("DisableSubMenu"));
 			} else if (wcscmp(pszCmdLine, L"EnableSubMenu") == 0) {
-				DlgProcSettings(NULL, WM_COMMAND, IDC_CHECK_USECONTEXT, BST_CHECKED);
+				DlgProcSettings(NULL, NULL, IDC_CHECK_USESUBMENU, TRUE);
+				//MsgBoxError(TEXT("EnableSubMenu"));
+			} else {
+				//DlgProcSettings(NULL, NULL, IDC_TOGGLE_ITEM, TRUE);
 			}
 			DlgProcSettings(NULL, WM_COMMAND, IDOK, NULL);
-		} else {
-			DialogBox(_hModule, MAKEINTRESOURCE(IDD_DIALOG_SETTINGS), NULL, (DLGPROC)&DlgProcSettings);
 		}
 		return S_OK;
 	} else {
-		// MsgBoxError(TEXT("Uninstalling not supported, use DllUnregisterServer instead"));
 		return E_NOTIMPL;
 	}
 }
@@ -149,6 +158,11 @@ BOOL RegisterServer()
 	HKEY     hKey;
 	LRESULT  lResult;
 	DWORD    dwDisp;
+	DWORD    hasSubMenu = TRUE;
+	DWORD    hasSendToCurrentPlaylist = TRUE;
+	DWORD    hasSendToNewPlaylist = TRUE;
+	DWORD    hasSendToTagEditor = TRUE;
+	DWORD    hasAddToLibrary = TRUE;
 	TCHAR    szSubKey[MAX_PATH];
 	TCHAR    szModule[MAX_PATH];
 	TCHAR    szDefaultPath[MAX_PATH];
@@ -174,20 +188,21 @@ BOOL RegisterServer()
 
 		//Settings
 		// Context menu
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),						TEXT("Title"),			REG_SZ,		szDefaultMenutext},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),						TEXT("Path"),			REG_SZ,		szDefaultPath},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),						TEXT("Custom"),			REG_SZ,		szDefaultCustomcommand},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),						TEXT("ShowIcon"),		REG_DWORD,	(LPTSTR)&showIcon},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),						TEXT("HasSubMenu"),		REG_DWORD,	(LPTSTR)&hasSubMenu},
-		// Icon
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),						TEXT("Dynamic"),		REG_DWORD,	(LPTSTR)&isDynamic},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),						TEXT("Maxtext"),		REG_DWORD,	(LPTSTR)&maxText},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("SendToCurrentPlaylist"),		REG_SZ,		szDefaultSendToCurrentPlaylist},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("SendToNewPlaylist"),			REG_SZ,		szDefaultSendToNewPlaylist},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("SendToTagEditor"),			REG_SZ,		szDefaultSendToTagEditor},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("AddToLibrary"),				REG_SZ,		szDefaultAddToLibrary},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSendToCurrentPlaylist"),	REG_DWORD,	(LPTSTR)&hasSendToCurrentPlaylist},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSendToNewPlaylist"),		REG_DWORD,	(LPTSTR)&hasSendToNewPlaylist},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSendToTagEditor"),		REG_DWORD,	(LPTSTR)&hasSendToTagEditor},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasAddToLibrary"),			REG_DWORD,	(LPTSTR)&hasAddToLibrary},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("Path"),						REG_SZ,		szDefaultPath},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSubMenu"),				REG_DWORD,	(LPTSTR)&hasSubMenu},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("Maxtext"),					REG_DWORD,	(LPTSTR)&maxText},
 
 		//Registration
 		// Context menu
-		{HKEY_CLASSES_ROOT,	szShellExtensionKey,	NULL,					REG_SZ,		szGUID},
-		// Icon
-		//{HKEY_CLASSES_ROOT,	TEXT("MiamPlayer_file\\shellex\\IconHandler"),		NULL,					REG_SZ,		szGUID},
+		{HKEY_CLASSES_ROOT,	szShellExtensionKey, NULL, REG_SZ, szGUID},
 
 		{NULL, NULL, NULL, REG_SZ, NULL}
 	};
@@ -196,7 +211,7 @@ BOOL RegisterServer()
 	UnregisterServer();
 
 	// Register the CLSID entries
-	for(i = 0; ClsidEntries[i].hRootKey; i++) {
+	for (i = 0; ClsidEntries[i].hRootKey; i++) {
 		wsprintf(szSubKey, ClsidEntries[i].szSubKey, szGUID);
 		lResult = RegCreateKeyEx(ClsidEntries[i].hRootKey, szSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &dwDisp);
 		if (NOERROR == lResult) {
@@ -209,9 +224,9 @@ BOOL RegisterServer()
 				lResult = RegSetValueEx(hKey, ClsidEntries[i].lpszValueName, 0, ClsidEntries[i].type, (LPBYTE)ClsidEntries[i].szData, sizeof(DWORD));
 			}
 			RegCloseKey(hKey);
-		}
-		else
+		} else {
 			return FALSE;
+		}
 	}
 	return TRUE;
 }
@@ -241,17 +256,6 @@ BOOL UnregisterServer()
 }
 
 //---------------------------------------------------------------------------
-// MsgBox
-//---------------------------------------------------------------------------
-/*void MsgBox(LPCTSTR lpszMsg)
-{
-	MessageBox(NULL,
-			   lpszMsg,
-			   TEXT("MiamPlayer Extension"),
-			   MB_OK);
-}*/
-
-//---------------------------------------------------------------------------
 // MsgBoxError
 //---------------------------------------------------------------------------
 void MsgBoxError(LPCTSTR lpszMsg)
@@ -279,180 +283,70 @@ BOOL CheckMiamPlayer(LPCTSTR path) {
 	return TRUE;
 }
 
-INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT /*uMsg*/, WPARAM wParam, LPARAM lParam)
 {
 	static TCHAR customCommand[MAX_PATH] = {0};
 	static TCHAR customText[TITLE_SIZE] = {0};
 	static TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
 
 	static DWORD showMenu = 2;	//0 off, 1 on, 2 unknown
-	static DWORD useMenuIcon = 1;	// 0 off, otherwise on
-
-	static DWORD hasSubMenu = 1;
+	static DWORD hasSubMenu = TRUE;
 
 	HKEY settingKey;
 	LONG result;
-	DWORD size = 0;
 
-	switch(uMsg) {
-		case WM_INITDIALOG: {
-			wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
-			result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
+	switch(LOWORD(wParam)) {
+	case IDOK: {
+		//Store settings
+		GetDlgItemText(hwndDlg, IDC_EDIT_MENU, customText, TITLE_SIZE);
+		GetDlgItemText(hwndDlg, IDC_EDIT_COMMAND, customCommand, MAX_PATH);
+
+		wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
+		result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
+		if (result == ERROR_SUCCESS) {
+
+			result = RegSetValueEx(settingKey, TEXT("HasSubMenu"), 0, REG_DWORD, (LPBYTE)&hasSubMenu, sizeof(DWORD));
+			RegCloseKey(settingKey);
+		}
+
+		if (showMenu == 1) {
+			result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szShellExtensionKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
 			if (result == ERROR_SUCCESS) {
-				size = sizeof(TCHAR)*TITLE_SIZE;
-				result = RegQueryValueEx(settingKey, TEXT("Title"), NULL, NULL, (LPBYTE)(customText), &size);
-				if (result != ERROR_SUCCESS) {
-					lstrcpyn(customText, szDefaultMenutext, TITLE_SIZE);
-				}
-
-				size = sizeof(TCHAR)*MAX_PATH;
-				result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, (LPBYTE)(customCommand), &size);
-				if (result != ERROR_SUCCESS) {
-					lstrcpyn(customCommand, TEXT(""), MAX_PATH);
-				}
-
-				size = sizeof(DWORD);
-				result = RegQueryValueEx(settingKey, TEXT("Dynamic"), NULL, NULL, (BYTE*)(&isDynamic), &size);
-				if (result != ERROR_SUCCESS) {
-					isDynamic = 1;
-				}
-
-				size = sizeof(DWORD);
-				result = RegQueryValueEx(settingKey, TEXT("ShowIcon"), NULL, NULL, (BYTE*)(&useMenuIcon), &size);
-				if (result != ERROR_SUCCESS) {
-					useMenuIcon = 1;
-				}
-
-				size = sizeof(DWORD);
-				result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasSubMenu), &size);
-				if (result != ERROR_SUCCESS) {
-					hasSubMenu = 1;
-				}
-
+				result = RegSetValueEx(settingKey, NULL, 0,REG_SZ, (LPBYTE)szGUID, (lstrlen(szGUID)+1)*sizeof(TCHAR));
 				RegCloseKey(settingKey);
 			}
+		} else if (showMenu == 0) {
+			RegDeleteKey(HKEY_CLASSES_ROOT, szShellExtensionKey);
+		}
 
-			Button_SetCheck(GetDlgItem(hwndDlg, IDC_CHECK_USECONTEXT), BST_INDETERMINATE);
-			Button_SetCheck(GetDlgItem(hwndDlg, IDC_CHECK_USEICON), BST_INDETERMINATE);
-
-			Button_SetCheck(GetDlgItem(hwndDlg, IDC_CHECK_CONTEXTICON), useMenuIcon ? BST_CHECKED:BST_UNCHECKED);
-			Button_SetCheck(GetDlgItem(hwndDlg, IDC_CHECK_ISDYNAMIC), isDynamic ? BST_CHECKED:BST_UNCHECKED);
-
-			SetDlgItemText(hwndDlg, IDC_EDIT_MENU, customText);
-			SetDlgItemText(hwndDlg, IDC_EDIT_COMMAND, customCommand);
-
-			return TRUE;
-			break; }
-		case WM_COMMAND: {
-			switch(LOWORD(wParam)) {
-				case IDOK: {
-					//Store settings
-					GetDlgItemText(hwndDlg, IDC_EDIT_MENU, customText, TITLE_SIZE);
-					GetDlgItemText(hwndDlg, IDC_EDIT_COMMAND, customCommand, MAX_PATH);
-					int textLen = lstrlen(customText);
-					int commandLen = lstrlen(customCommand);
-
-					wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
-					result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
-					if (result == ERROR_SUCCESS) {
-
-						result = RegSetValueEx(settingKey, TEXT("Title"), 0,REG_SZ, (LPBYTE)customText, (textLen+1)*sizeof(TCHAR));
-						result = RegSetValueEx(settingKey, TEXT("Custom"), 0,REG_SZ, (LPBYTE)customCommand, (commandLen+1)*sizeof(TCHAR));
-
-						result = RegSetValueEx(settingKey, TEXT("Dynamic"), 0, REG_DWORD, (LPBYTE)&isDynamic, sizeof(DWORD));
-						result = RegSetValueEx(settingKey, TEXT("ShowIcon"), 0, REG_DWORD, (LPBYTE)&useMenuIcon, sizeof(DWORD));
-						//result = RegSetValueEx(settingKey, TEXT("HasSubMenu"), 0, REG_DWORD, (LPBYTE)&hasSubMenu, sizeof(DWORD));
-
-						RegCloseKey(settingKey);
-					}
-
-					if (showMenu == 1) {
-						result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szShellExtensionKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
-						if (result == ERROR_SUCCESS) {
-							result = RegSetValueEx(settingKey, NULL, 0,REG_SZ, (LPBYTE)szGUID, (lstrlen(szGUID)+1)*sizeof(TCHAR));
-							RegCloseKey(settingKey);
-						}
-					} else if (showMenu == 0) {
-						RegDeleteKey(HKEY_CLASSES_ROOT, szShellExtensionKey);
-					}
-
-					if (showIcon == 1) {
-						result = RegCreateKeyEx(HKEY_CLASSES_ROOT, TEXT("MiamPlayer_file\\shellex\\IconHandler"), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
-						if (result == ERROR_SUCCESS) {
-							result = RegSetValueEx(settingKey, NULL, 0,REG_SZ, (LPBYTE)szGUID, (lstrlen(szGUID)+1)*sizeof(TCHAR));
-							RegCloseKey(settingKey);
-						}
-					} else if (showIcon == 0) {
-						RegDeleteKey(HKEY_CLASSES_ROOT, TEXT("MiamPlayer_file\\shellex\\IconHandler"));
-						RegDeleteKey(HKEY_CLASSES_ROOT, TEXT("MiamPlayer_file\\shellex"));
-					}
-
-					/*if (hasSubMenu == 1) {
-						result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szShellExtensionKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
-						if (result == ERROR_SUCCESS) {
-							result = RegSetValueEx(settingKey, NULL, 0,REG_SZ, (LPBYTE)szGUID, (lstrlen(szGUID)+1)*sizeof(TCHAR));
-							RegCloseKey(settingKey);
-						}
-					} else if (hasSubMenu == 0) {
-						RegDeleteKey(HKEY_CLASSES_ROOT, szShellExtensionKey);
-					}*/
-
-					PostMessage(hwndDlg, WM_CLOSE, 0, 0);
-					break; }
-				case IDC_CHECK_USECONTEXT: {
-					int state = (int)lParam;
-					if (state == BST_CHECKED) {
-						showMenu = 1;
-					} else if (state == BST_UNCHECKED) {
-						showMenu = 0;
-					} else {
-						showMenu = 2;
-					}
-					break; }
-				case IDC_CHECK_USEICON: {
-					int state = (int)lParam;
-					if (state == BST_CHECKED)
-						showIcon = 1;
-					else if (state == BST_UNCHECKED)
-						showIcon = 0;
-					else
-						showIcon = 2;
-					break; }
-				case IDC_CHECK_CONTEXTICON: {
-					int state = Button_GetCheck((HWND)lParam);
-					if (state == BST_CHECKED)
-						useMenuIcon = 1;
-					else
-						useMenuIcon = 0;
-					break; }
-				case IDC_CHECK_ISDYNAMIC: {
-					int state = Button_GetCheck((HWND)lParam);
-					if (state == BST_CHECKED)
-						isDynamic = 1;
-					else
-						isDynamic = 0;
-					break; }
-				case IDC_CHECK_USESUBMENU: {
-					int state = (int)lParam;
-					if (state == BST_CHECKED)
-						isDynamic = 1;
-					else
-						isDynamic = 0;
-					break; }
-				default:
-					break;
-			}
-
-			return TRUE;
-			break; }
-		case WM_CLOSE: {
-			EndDialog(hwndDlg, 0);
-			return TRUE;
-			break; }
-		default:
-			break;
+		PostMessage(hwndDlg, WM_CLOSE, 0, 0);
+		break;
 	}
-
+	case IDC_CHECK_USECONTEXT: {
+		int state = (int)lParam;
+		if (state == BST_CHECKED) {
+			showMenu = TRUE;
+		} else if (state == BST_UNCHECKED) {
+			showMenu = FALSE;
+		} else {
+			showMenu = 2;
+		}
+		break;
+	}
+	case IDC_CHECK_USESUBMENU: {
+		int state = (int)lParam;
+		if (state == BST_CHECKED) {
+			hasSubMenu = TRUE;
+		} else if (state == BST_UNCHECKED) {
+			hasSubMenu = FALSE;
+		} else {
+			hasSubMenu = 2;
+		}
+		break;
+	}
+	default:
+		break;
+	}
 	return FALSE;
 }
 
@@ -517,8 +411,12 @@ CShellExt::CShellExt() :
 	m_pDataObj(NULL),
 	m_menuID(0),
 	m_hMenu(NULL),
-	m_showIcon(true),
 	m_useCustom(false),
+	m_hasSubMenu(true),
+	m_hasSendToCurrentPlaylist(true),
+	m_hasSendToNewPlaylist(true),
+	m_hasSendToTagEditor(true),
+	m_hasAddToLibrary(true),
 	m_nameLength(0),
 	m_nameMaxLength(maxText),
 	m_isDynamic(false),
@@ -543,40 +441,69 @@ CShellExt::CShellExt() :
 	HKEY settingKey;
 	LONG result;
 	DWORD size = 0;
-	DWORD dyn = 0, siz = 0, showicon = 0;
+	DWORD siz = 0;
 
 	wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
 	result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
 	if (result == ERROR_SUCCESS) {
 		size = sizeof(TCHAR)*TITLE_SIZE;
-		result = RegQueryValueEx(settingKey, TEXT("Title"), NULL, NULL, (LPBYTE)(m_szMenuTitle), &size);
+		result = RegQueryValueEx(settingKey, TEXT("SendToCurrentPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToCurrentPlaylist), &size);
 		if (result != ERROR_SUCCESS) {
-			lstrcpyn(m_szMenuTitle, szDefaultMenutext, TITLE_SIZE);
+			lstrcpyn(m_szMenuSendToCurrentPlaylist, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
 		}
 
-		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("Dynamic"), NULL, NULL, (BYTE*)(&dyn), &size);
-		if (result == ERROR_SUCCESS && dyn != 0) {
-			m_isDynamic = true;
+		size = sizeof(TCHAR)*TITLE_SIZE;
+		result = RegQueryValueEx(settingKey, TEXT("SendToNewPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToNewPlaylist), &size);
+		if (result != ERROR_SUCCESS) {
+			lstrcpyn(m_szMenuSendToNewPlaylist, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
+		}
+
+		size = sizeof(TCHAR)*TITLE_SIZE;
+		result = RegQueryValueEx(settingKey, TEXT("SendToTagEditor"), NULL, NULL, (LPBYTE)(m_szMenuSendToTagEditor), &size);
+		if (result != ERROR_SUCCESS) {
+			lstrcpyn(m_szMenuSendToTagEditor, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
+		}
+
+		size = sizeof(TCHAR)*TITLE_SIZE;
+		result = RegQueryValueEx(settingKey, TEXT("AddToLibrary"), NULL, NULL, (LPBYTE)(m_szMenuAddToLibrary), &size);
+		if (result != ERROR_SUCCESS) {
+			lstrcpyn(m_szMenuAddToLibrary, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
 		}
 
 		size = sizeof(DWORD);
 		result = RegQueryValueEx(settingKey, TEXT("Maxtext"), NULL, NULL, (BYTE*)(&siz), &size);
 		if (result == ERROR_SUCCESS) {
-			m_nameMaxLength = std::max((DWORD)0,siz);
+			m_nameMaxLength = std::max((DWORD)0, siz);
 		}
 
 		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("ShowIcon"), NULL, NULL, (BYTE*)(&showicon), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasSubMenu), &size);
 		if (result == ERROR_SUCCESS) {
-			m_showIcon = (showicon != 0);
+			m_hasSubMenu = (hasSubMenu != 0);
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("CustomIcon"), NULL, NULL, NULL, NULL);
+		size = sizeof(DWORD);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToCurrentPlaylist"), NULL, NULL, (BYTE*)(&hasSendToCurrentPlaylist), &size);
 		if (result == ERROR_SUCCESS) {
-			m_useCustom = true;
-			size = MAX_PATH;
-			RegQueryValueEx(settingKey, TEXT("CustomIcon"), NULL, NULL, (BYTE*)m_szCustomPath, &size);
+			m_hasSendToCurrentPlaylist = (hasSendToCurrentPlaylist != 0);
+		}
+
+		size = sizeof(DWORD);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToNewPlaylist"), NULL, NULL, (BYTE*)(&hasSendToNewPlaylist), &size);
+		if (result == ERROR_SUCCESS) {
+			m_hasSendToNewPlaylist = (hasSendToNewPlaylist != 0);
+		}
+
+		size = sizeof(DWORD);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToTagEditor"), NULL, NULL, (BYTE*)(&hasSendToTagEditor), &size);
+		if (result == ERROR_SUCCESS) {
+			m_hasSendToTagEditor = (hasSendToTagEditor != 0);
+		}
+
+		size = sizeof(DWORD);
+		result = RegQueryValueEx(settingKey, TEXT("HasAddToLibrary"), NULL, NULL, (BYTE*)(&hasAddToLibrary), &size);
+		if (result == ERROR_SUCCESS) {
+			m_hasAddToLibrary = (hasAddToLibrary != 0);
 		}
 
 		RegCloseKey(settingKey);
@@ -599,7 +526,6 @@ STDMETHODIMP CShellExt::QueryInterface(REFIID riid, LPVOID FAR *ppv)
 {
 	*ppv = NULL;
 	if (IsEqualIID(riid, IID_IUnknown)) {
-		//*ppv = (LPUNKNOWN)this;
 		*ppv = (LPSHELLEXTINIT)this;
 	} else if (IsEqualIID(riid, IID_IShellExtInit)) {
 		*ppv = (LPSHELLEXTINIT)this;
@@ -673,31 +599,40 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 	UINT uID = idCmdFirst;
 
 	///
-	HKEY settingKey;
-	LONG result;
-	TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
-	wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
-	result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
+	//HKEY settingKey;
+	//LONG result;
+	//TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
+	//wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
+	//result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
 
-	BOOL hasSubMenu = 0;
-	DWORD size = 0;
-	result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasSubMenu), &size);
+	//BOOL hasSubMenu = 0;
+	//DWORD size = 0;
+	//result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasSubMenu), &size);
 	/*if (result != ERROR_SUCCESS) {
 		hasSubMenu = 1;
 	}*/
-	RegCloseKey(settingKey);
+	//RegCloseKey(settingKey);
 	///
 
 	//TCHAR * message = new TCHAR[512];
 	//wsprintf(message, TEXT("toggleSubMenu was called"));
 	//MsgBoxError(message);
 
-	if (hasSubMenu) {
+	if (m_hasSubMenu) {
 		HMENU hSubmenu = CreatePopupMenu();
-		InsertMenu(hSubmenu, 0, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current &Playlist"));
-		InsertMenu(hSubmenu, 1, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &new Playlist"));
-		InsertMenu(hSubmenu, 2, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &Tag Editor"));
-		InsertMenu(hSubmenu, 3, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to &Library"));
+		int i = 0;
+		if (m_hasSendToCurrentPlaylist) {
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current &Playlist"));
+		}
+		if (m_hasSendToNewPlaylist) {
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &new Playlist"));
+		}
+		if (m_hasSendToTagEditor) {
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &Tag Editor"));
+		}
+		if (m_hasAddToLibrary) {
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to &Library"));
+		}
 
 		MENUITEMINFO menuItemInfo = { sizeof(MENUITEMINFO) };
 		menuItemInfo.fMask = MIIM_SUBMENU | MIIM_STRING | MIIM_ID;
@@ -706,13 +641,21 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 		menuItemInfo.dwTypeData = TEXT("&Miam-Player");
 		InsertMenuItem(hMenu, indexMenu, TRUE, &menuItemInfo);
 	} else {
-		InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current &Playlist"));
-		InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &new Playlist"));
-		InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &Tag Editor"));
-		InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to &Library"));
+		if (m_hasSendToCurrentPlaylist) {
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current &Playlist"));
+		}
+		if (m_hasSendToNewPlaylist) {
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &new Playlist"));
+		}
+		if (m_hasSendToTagEditor) {
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &Tag Editor"));
+		}
+		if (m_hasAddToLibrary) {
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to &Library"));
+		}
 	}
 
-	if (m_showIcon && hasSubMenu) {
+	if (m_hasSubMenu) {
 		HBITMAP icon = NULL;
 		if (m_winVer >= WINVER_VISTA) {
 			icon = NULL;
@@ -799,11 +742,9 @@ STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 
 		if (lpdis == NULL)// || lpdis->itemID != m_menuID)
 			break;
-		if (m_showIcon) {
-			lpdis->itemWidth = 0;	//0 seems to work for 98 and up
-			if (lpdis->itemHeight < menuIconHeight)
-				lpdis->itemHeight = menuIconHeight;
-		}
+		lpdis->itemWidth = 0;	//0 seems to work for 98 and up
+		if (lpdis->itemHeight < menuIconHeight)
+			lpdis->itemHeight = menuIconHeight;
 		if (plResult)
 			*plResult = TRUE;
 		break;
@@ -813,15 +754,13 @@ STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 		DRAWITEMSTRUCT * lpdis = (DRAWITEMSTRUCT*) lParam;
 		if ((lpdis == NULL) || (lpdis->CtlType != ODT_MENU))
 			break;
-		if (m_showIcon) {
-			HICON miamPlayerIcon = NULL;
+		HICON miamPlayerIcon = NULL;
 
-			HRESULT hr = LoadShellIcon(menuIconWidth, menuIconHeight, &miamPlayerIcon);
+		HRESULT hr = LoadShellIcon(menuIconWidth, menuIconHeight, &miamPlayerIcon);
 
-			if (SUCCEEDED(hr)) {
-				DrawIconEx(lpdis->hDC, menuIconPadding, menuIconPadding, miamPlayerIcon, menuIconWidth, menuIconHeight, 0, NULL, DI_NORMAL);
-				DestroyIcon(miamPlayerIcon);
-			}
+		if (SUCCEEDED(hr)) {
+			DrawIconEx(lpdis->hDC, menuIconPadding, menuIconPadding, miamPlayerIcon, menuIconWidth, menuIconHeight, 0, NULL, DI_NORMAL);
+			DestroyIcon(miamPlayerIcon);
 		}
 		if (plResult)
 			*plResult = TRUE;
@@ -1080,10 +1019,10 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 		return E_FAIL;
 	}
 
-	result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, NULL, &regSize);
+	/*result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, NULL, &regSize);
 	if (result == ERROR_SUCCESS) {
 		bytesRequired += regSize;
-	}
+	}*/
 
 	for (UINT i = 0; i < m_cbFiles; i++) {
 		bytesRequired += DragQueryFile((HDROP)m_stgMedium.hGlobal, i, NULL, 0);
@@ -1105,11 +1044,11 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	lstrcat(szMiamExecutableFilename, TEXT("\""));
 	lstrcat(szMiamExecutableFilename, szFilename);
 	lstrcat(szMiamExecutableFilename, TEXT("\""));
-	result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, (LPBYTE)(szCustom), &pathSize);
+	/*result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, (LPBYTE)(szCustom), &pathSize);
 	if (result == ERROR_SUCCESS) {
 		lstrcat(szMiamExecutableFilename, TEXT(" "));
 		lstrcat(szMiamExecutableFilename, szCustom);
-	}
+	}*/
 	RegCloseKey(settingKey);
 
 	// We have to open the files in batches. A command on the command-line can be at most
@@ -1188,54 +1127,3 @@ STDMETHODIMP CShellExt::LoadShellIcon(int cx, int cy, HICON * phicon) {
 
 	return hr;
 }
-
-void CShellExt::toggleSubMenu(bool disabled)
-{
-	TCHAR * message = new TCHAR[512];
-	wsprintf(message, TEXT("toggleSubMenu was called"));
-	MsgBoxError(message);
-
-	HKEY settingKey;
-	LONG result;
-
-	TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
-	wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
-	result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
-	if (disabled) {
-		result = RegSetValueEx(settingKey, TEXT("HasSubMenu"), 0, REG_DWORD, (LPBYTE)&hasSubMenu, sizeof(DWORD));
-	} else {
-		result = RegSetValueEx(settingKey, TEXT("HasSubMenu"), 1, REG_DWORD, (LPBYTE)&hasSubMenu, sizeof(DWORD));
-	}
-	RegCloseKey(settingKey);
-}
-
-/*
-#ifndef CShellExtExport
-#define CShellExtExport
-
-#define DLL_API __declspec(dllexport)
-extern "C"
-{
-	DLL_API void* CShellExt_create(void)
-	{
-		return new CShellExt();
-	}
-
-	DLL_API bool CShellExt_toggleSubMenu(void *obj, bool disabled)
-	{
-		CShellExt *inst = reinterpret_cast<CShellExt*>(obj);
-		if (inst) {
-			inst->toggleSubMenu(disabled);
-			return true;
-		}
-		return false;
-	}
-
-	DLL_API bool CShellExt_disable(void)
-	{
-		return DllUnregisterServer();
-	}
-}
-
-#endif
-*/

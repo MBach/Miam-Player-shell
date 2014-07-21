@@ -78,6 +78,10 @@ private:
 	LPDATAOBJECT m_pDataObj;
 	TCHAR m_szDllDir[MAX_PATH];
 	TCHAR m_szMenuTitle[TITLE_SIZE];
+	TCHAR m_szMenuSendToCurrentPlaylist[TITLE_SIZE];
+	TCHAR m_szMenuSendToNewPlaylist[TITLE_SIZE];
+	TCHAR m_szMenuSendToTagEditor[TITLE_SIZE];
+	TCHAR m_szMenuAddToLibrary[TITLE_SIZE];
 	UINT m_menuID;
 	HMENU m_hMenu;
 	bool m_showIcon;
@@ -87,6 +91,11 @@ private:
 	TCHAR m_szModule[MAX_PATH];
 	TCHAR m_szCustomPath[MAX_PATH];
 	bool m_useCustom;
+	bool m_hasSubMenu;
+	bool m_hasSendToCurrentPlaylist;
+	bool m_hasSendToNewPlaylist;
+	bool m_hasSendToTagEditor;
+	bool m_hasAddToLibrary;
 	int m_nameLength;
 	int m_nameMaxLength;
 	bool m_isDynamic;
@@ -127,7 +136,4 @@ public:
 	// *** IExtractIcon methods ***
 	STDMETHODIMP GetIconLocation(UINT uFlags, LPTSTR szIconFile, UINT cchMax, int * piIndex, UINT * pwFlags);
 	STDMETHODIMP Extract(LPCTSTR pszFile, UINT nIconIndex, HICON * phiconLarge, HICON * phiconSmall, UINT nIconSize);
-
-	/// TEST
-	void toggleSubMenu(bool disabled);
 };
