@@ -16,29 +16,12 @@
 UINT _cRef = 0; // COM Reference count.
 HINSTANCE _hModule = NULL; // DLL Module.
 
-//Some global default values for registering the DLL
-
-//Menu
-TCHAR szMiamPlayerName[] = TEXT("MiamPlayer.exe");
-TCHAR szDefaultSendToCurrentPlaylist[] = TEXT("Send to current Playlist");
-TCHAR szDefaultSendToNewPlaylist[] = TEXT("Send to new Playlist");
-TCHAR szDefaultSendToTagEditor[] = TEXT("Send to Tag Editor");
-TCHAR szDefaultAddToLibrary[] = TEXT("Add to Library");
-
-TCHAR szShellExtensionTitle[] = TEXT("MiamPlayerShell");
 TCHAR szShellExtensionKey[] = TEXT("*\\shellex\\ContextMenuHandlers\\MiamPlayerShell");
 
 #define szHelpTextA "Send to MiamPlayer"
 #define szHelpTextW L"Send to MiamPlayer"
-TCHAR szMenuTitle[TITLE_SIZE];
-TCHAR szDefaultCustomcommand[] = TEXT("");
 
 DWORD maxText = 25;
-DWORD hasSubMenu = TRUE;
-BOOL hasSendToCurrentPlaylist = TRUE;
-BOOL hasSendToNewPlaylist = TRUE;
-BOOL hasSendToTagEditor = TRUE;
-BOOL hasAddToLibrary = TRUE;
 
 //Forward function declarations
 extern "C" int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved);
@@ -49,14 +32,7 @@ BOOL RegisterServer();
 BOOL UnregisterServer();
 void MsgBoxError(LPCTSTR lpszMsg);
 BOOL CheckMiamPlayer(LPCTSTR path);
-INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void InvalidateIcon(HICON * iconSmall, HICON * iconLarge);
-
-#ifdef UNICODE
-#define _ttoi _wtoi
-#else
-#define _ttoi atoi
-#endif
 
 //Types
 struct DOREGSTRUCT {
@@ -118,30 +94,9 @@ STDAPI DllUnregisterServer(void)
 // Replace code with MFC classes?
 // #include <atlbase.h>
 
-STDAPI DllInstall(BOOL bInstall, LPCWSTR pszCmdLine)
+STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/)
 {
 	if (bInstall) {
-		/// Suck a hacky way to reuse Notepad++ code! But who cares?
-		/// This code REALLY needs to be refactored
-		/// OMG C routines everywhere
-		if (pszCmdLine != NULL) {
-			if (wcscmp(pszCmdLine, L"DisableContextMenu") == 0) {
-				DlgProcSettings(NULL, NULL, IDC_CHECK_USECONTEXT, FALSE);
-				//MsgBoxError(TEXT("DisableContextMenu"));
-			} else if (wcscmp(pszCmdLine, L"EnableContextMenu") == 0) {
-				DlgProcSettings(NULL, NULL, IDC_CHECK_USECONTEXT, TRUE);
-				//MsgBoxError(TEXT("EnableContextMenu"));
-			} else if (wcscmp(pszCmdLine, L"DisableSubMenu") == 0) {
-				DlgProcSettings(NULL, NULL, IDC_CHECK_USESUBMENU, FALSE);
-				//MsgBoxError(TEXT("DisableSubMenu"));
-			} else if (wcscmp(pszCmdLine, L"EnableSubMenu") == 0) {
-				DlgProcSettings(NULL, NULL, IDC_CHECK_USESUBMENU, TRUE);
-				//MsgBoxError(TEXT("EnableSubMenu"));
-			} else {
-				//DlgProcSettings(NULL, NULL, IDC_TOGGLE_ITEM, TRUE);
-			}
-			DlgProcSettings(NULL, WM_COMMAND, IDOK, NULL);
-		}
 		return S_OK;
 	} else {
 		return E_NOTIMPL;
@@ -158,6 +113,7 @@ BOOL RegisterServer()
 	HKEY     hKey;
 	LRESULT  lResult;
 	DWORD    dwDisp;
+	DWORD    isActive = TRUE;
 	DWORD    hasSubMenu = TRUE;
 	DWORD    hasSendToCurrentPlaylist = TRUE;
 	DWORD    hasSendToNewPlaylist = TRUE;
@@ -171,34 +127,37 @@ BOOL RegisterServer()
 	TCHAR* pDest = StrRChr(szDefaultPath, NULL, TEXT('\\'));
 	pDest++;
 	pDest[0] = 0;
-	lstrcat(szDefaultPath, szMiamPlayerName);
+	lstrcat(szDefaultPath, TEXT("MiamPlayer.exe"));
 
 	if (!CheckMiamPlayer(szDefaultPath)) {
 		// MsgBoxError(TEXT("To register the MiamPlayer shell extension properly,\r\nplace MiamPlayerShell.dll in the same directory as the MiamPlayer executable."));
 		//return FALSE;
 	}
 
+	LPWSTR miamShell = TEXT("Software\\MmeMiamMiam\\MiamPlayer\\MiamPlayerShell");
+
 	//get this app's path and file name
 	GetModuleFileName(_hModule, szModule, MAX_PATH);
 
 	static DOREGSTRUCT ClsidEntries[] = {
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s"),									NULL,					REG_SZ,		szShellExtensionTitle},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s"),									NULL,					REG_SZ,		TEXT("MiamPlayerShell")},
 		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),					NULL,					REG_SZ,		szModule},
 		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),					TEXT("ThreadingModel"),	REG_SZ,		TEXT("Apartment")},
 
 		//Settings
 		// Context menu
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("SendToCurrentPlaylist"),		REG_SZ,		szDefaultSendToCurrentPlaylist},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("SendToNewPlaylist"),			REG_SZ,		szDefaultSendToNewPlaylist},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("SendToTagEditor"),			REG_SZ,		szDefaultSendToTagEditor},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("AddToLibrary"),				REG_SZ,		szDefaultAddToLibrary},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSendToCurrentPlaylist"),	REG_DWORD,	(LPTSTR)&hasSendToCurrentPlaylist},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSendToNewPlaylist"),		REG_DWORD,	(LPTSTR)&hasSendToNewPlaylist},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSendToTagEditor"),		REG_DWORD,	(LPTSTR)&hasSendToTagEditor},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasAddToLibrary"),			REG_DWORD,	(LPTSTR)&hasAddToLibrary},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("Path"),						REG_SZ,		szDefaultPath},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("HasSubMenu"),				REG_DWORD,	(LPTSTR)&hasSubMenu},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"), TEXT("Maxtext"),					REG_DWORD,	(LPTSTR)&maxText},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("SendToCurrentPlaylist"),		REG_SZ,		TEXT("Send to current Playlist")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("SendToNewPlaylist"),			REG_SZ,		TEXT("Send to new Playlist")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("SendToTagEditor"),			REG_SZ,		TEXT("Send to Tag Editor")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("AddToLibrary"),				REG_SZ,		TEXT("Add to Library")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasSendToCurrentPlaylist"),	REG_DWORD,	(LPTSTR)&hasSendToCurrentPlaylist},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasSendToNewPlaylist"),		REG_DWORD,	(LPTSTR)&hasSendToNewPlaylist},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasSendToTagEditor"),			REG_DWORD,	(LPTSTR)&hasSendToTagEditor},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasAddToLibrary"),			REG_DWORD,	(LPTSTR)&hasAddToLibrary},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),TEXT("Path"),						REG_SZ,		szDefaultPath},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("IsActive"),					REG_DWORD,	(LPTSTR)&isActive},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasSubMenu"),					REG_DWORD,	(LPTSTR)&hasSubMenu},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\Settings"),TEXT("Maxtext"),					REG_DWORD,	(LPTSTR)&maxText},
 
 		//Registration
 		// Context menu
@@ -283,73 +242,6 @@ BOOL CheckMiamPlayer(LPCTSTR path) {
 	return TRUE;
 }
 
-INT_PTR CALLBACK DlgProcSettings(HWND hwndDlg, UINT /*uMsg*/, WPARAM wParam, LPARAM lParam)
-{
-	static TCHAR customCommand[MAX_PATH] = {0};
-	static TCHAR customText[TITLE_SIZE] = {0};
-	static TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
-
-	static DWORD showMenu = 2;	//0 off, 1 on, 2 unknown
-	static DWORD hasSubMenu = TRUE;
-
-	HKEY settingKey;
-	LONG result;
-
-	switch(LOWORD(wParam)) {
-	case IDOK: {
-		//Store settings
-		GetDlgItemText(hwndDlg, IDC_EDIT_MENU, customText, TITLE_SIZE);
-		GetDlgItemText(hwndDlg, IDC_EDIT_COMMAND, customCommand, MAX_PATH);
-
-		wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
-		result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
-		if (result == ERROR_SUCCESS) {
-
-			result = RegSetValueEx(settingKey, TEXT("HasSubMenu"), 0, REG_DWORD, (LPBYTE)&hasSubMenu, sizeof(DWORD));
-			RegCloseKey(settingKey);
-		}
-
-		if (showMenu == 1) {
-			result = RegCreateKeyEx(HKEY_CLASSES_ROOT, szShellExtensionKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &settingKey, NULL);
-			if (result == ERROR_SUCCESS) {
-				result = RegSetValueEx(settingKey, NULL, 0,REG_SZ, (LPBYTE)szGUID, (lstrlen(szGUID)+1)*sizeof(TCHAR));
-				RegCloseKey(settingKey);
-			}
-		} else if (showMenu == 0) {
-			RegDeleteKey(HKEY_CLASSES_ROOT, szShellExtensionKey);
-		}
-
-		PostMessage(hwndDlg, WM_CLOSE, 0, 0);
-		break;
-	}
-	case IDC_CHECK_USECONTEXT: {
-		int state = (int)lParam;
-		if (state == BST_CHECKED) {
-			showMenu = TRUE;
-		} else if (state == BST_UNCHECKED) {
-			showMenu = FALSE;
-		} else {
-			showMenu = 2;
-		}
-		break;
-	}
-	case IDC_CHECK_USESUBMENU: {
-		int state = (int)lParam;
-		if (state == BST_CHECKED) {
-			hasSubMenu = TRUE;
-		} else if (state == BST_UNCHECKED) {
-			hasSubMenu = FALSE;
-		} else {
-			hasSubMenu = 2;
-		}
-		break;
-	}
-	default:
-		break;
-	}
-	return FALSE;
-}
-
 // --- CShellExtClassFactory ---
 CShellExtClassFactory::CShellExtClassFactory() :
 	m_cRef(0L)
@@ -412,6 +304,7 @@ CShellExt::CShellExt() :
 	m_menuID(0),
 	m_hMenu(NULL),
 	m_useCustom(false),
+	m_isActive(true),
 	m_hasSubMenu(true),
 	m_hasSendToCurrentPlaylist(true),
 	m_hasSendToNewPlaylist(true),
@@ -422,7 +315,6 @@ CShellExt::CShellExt() :
 	m_isDynamic(false),
 	m_winVer(0)
 {
-	TCHAR szKeyTemp [MAX_PATH + GUID_STRING_SIZE];
 	ZeroMemory(&m_stgMedium, sizeof(m_stgMedium));
 	_cRef++;
 
@@ -443,8 +335,10 @@ CShellExt::CShellExt() :
 	DWORD size = 0;
 	DWORD siz = 0;
 
-	wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
-	result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
+	//Menu
+	TCHAR szDefaultSendToCurrentPlaylist[] = TEXT("Send to current Playlist");
+
+	result = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\MmeMiamMiam\\MiamPlayer\\MiamPlayerShell"), 0, KEY_READ, &settingKey);
 	if (result == ERROR_SUCCESS) {
 		size = sizeof(TCHAR)*TITLE_SIZE;
 		result = RegQueryValueEx(settingKey, TEXT("SendToCurrentPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToCurrentPlaylist), &size);
@@ -452,19 +346,16 @@ CShellExt::CShellExt() :
 			lstrcpyn(m_szMenuSendToCurrentPlaylist, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
 		}
 
-		size = sizeof(TCHAR)*TITLE_SIZE;
 		result = RegQueryValueEx(settingKey, TEXT("SendToNewPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToNewPlaylist), &size);
 		if (result != ERROR_SUCCESS) {
 			lstrcpyn(m_szMenuSendToNewPlaylist, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
 		}
 
-		size = sizeof(TCHAR)*TITLE_SIZE;
 		result = RegQueryValueEx(settingKey, TEXT("SendToTagEditor"), NULL, NULL, (LPBYTE)(m_szMenuSendToTagEditor), &size);
 		if (result != ERROR_SUCCESS) {
 			lstrcpyn(m_szMenuSendToTagEditor, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
 		}
 
-		size = sizeof(TCHAR)*TITLE_SIZE;
 		result = RegQueryValueEx(settingKey, TEXT("AddToLibrary"), NULL, NULL, (LPBYTE)(m_szMenuAddToLibrary), &size);
 		if (result != ERROR_SUCCESS) {
 			lstrcpyn(m_szMenuAddToLibrary, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
@@ -476,34 +367,35 @@ CShellExt::CShellExt() :
 			m_nameMaxLength = std::max((DWORD)0, siz);
 		}
 
-		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasSubMenu), &size);
+		BOOL hasItemInContextMenu = TRUE;
+		result = RegQueryValueEx(settingKey, TEXT("IsActive"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
-			m_hasSubMenu = (hasSubMenu != 0);
+			m_isActive = (hasItemInContextMenu != 0);
 		}
 
-		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("HasSendToCurrentPlaylist"), NULL, NULL, (BYTE*)(&hasSendToCurrentPlaylist), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
-			m_hasSendToCurrentPlaylist = (hasSendToCurrentPlaylist != 0);
+			m_hasSubMenu = (hasItemInContextMenu != 0);
 		}
 
-		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("HasSendToNewPlaylist"), NULL, NULL, (BYTE*)(&hasSendToNewPlaylist), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToCurrentPlaylist"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
-			m_hasSendToNewPlaylist = (hasSendToNewPlaylist != 0);
+			m_hasSendToCurrentPlaylist = (hasItemInContextMenu != 0);
 		}
 
-		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("HasSendToTagEditor"), NULL, NULL, (BYTE*)(&hasSendToTagEditor), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToNewPlaylist"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
-			m_hasSendToTagEditor = (hasSendToTagEditor != 0);
+			m_hasSendToNewPlaylist = (hasItemInContextMenu != 0);
 		}
 
-		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("HasAddToLibrary"), NULL, NULL, (BYTE*)(&hasAddToLibrary), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToTagEditor"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
-			m_hasAddToLibrary = (hasAddToLibrary != 0);
+			m_hasSendToTagEditor = (hasItemInContextMenu != 0);
+		}
+
+		result = RegQueryValueEx(settingKey, TEXT("HasAddToLibrary"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
+		if (result == ERROR_SUCCESS) {
+			m_hasAddToLibrary = (hasItemInContextMenu != 0);
 		}
 
 		RegCloseKey(settingKey);
@@ -578,6 +470,11 @@ STDMETHODIMP CShellExt::Initialize(LPCITEMIDLIST /*pIDFolder*/, LPDATAOBJECT pDa
 // *** IContextMenu methods ***
 STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmdFirst, UINT /*idCmdLast*/, UINT /*uFlags*/)
 {
+	// Context menu can be disabled with standard account if DLL has been registered with Admin rights after install /o/
+	if (!m_isActive) {
+		return SEVERITY_ERROR;
+	}
+
 	FORMATETC fmte = {
 		CF_HDROP,
 		(DVTARGETDEVICE FAR *)NULL,
@@ -594,64 +491,42 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 	}
 
 	UINT nIndex = indexMenu++;
-
-
 	UINT uID = idCmdFirst;
-
-	///
-	//HKEY settingKey;
-	//LONG result;
-	//TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
-	//wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
-	//result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
-
-	//BOOL hasSubMenu = 0;
-	//DWORD size = 0;
-	//result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasSubMenu), &size);
-	/*if (result != ERROR_SUCCESS) {
-		hasSubMenu = 1;
-	}*/
-	//RegCloseKey(settingKey);
-	///
-
-	//TCHAR * message = new TCHAR[512];
-	//wsprintf(message, TEXT("toggleSubMenu was called"));
-	//MsgBoxError(message);
 
 	if (m_hasSubMenu) {
 		HMENU hSubmenu = CreatePopupMenu();
 		int i = 0;
 		if (m_hasSendToCurrentPlaylist) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current &Playlist"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current Playlist"));
 		}
 		if (m_hasSendToNewPlaylist) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &new Playlist"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to new Playlist"));
 		}
 		if (m_hasSendToTagEditor) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &Tag Editor"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to Tag Editor"));
 		}
 		if (m_hasAddToLibrary) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to &Library"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to Library"));
 		}
 
 		MENUITEMINFO menuItemInfo = { sizeof(MENUITEMINFO) };
 		menuItemInfo.fMask = MIIM_SUBMENU | MIIM_STRING | MIIM_ID;
 		menuItemInfo.wID = uID++;
 		menuItemInfo.hSubMenu = hSubmenu;
-		menuItemInfo.dwTypeData = TEXT("&Miam-Player");
+		menuItemInfo.dwTypeData = TEXT("Miam-Player");
 		InsertMenuItem(hMenu, indexMenu, TRUE, &menuItemInfo);
 	} else {
 		if (m_hasSendToCurrentPlaylist) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current &Playlist"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current Playlist"));
 		}
 		if (m_hasSendToNewPlaylist) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &new Playlist"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to new Playlist"));
 		}
 		if (m_hasSendToTagEditor) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to &Tag Editor"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to Tag Editor"));
 		}
 		if (m_hasAddToLibrary) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to &Library"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to Library"));
 		}
 	}
 
@@ -677,8 +552,6 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 			mii.cbSize = sizeof(mii);
 			mii.fMask = MIIM_BITMAP;
 			mii.hbmpItem = icon;
-			//mii.hbmpChecked = icon;
-			//mii.hbmpUnchecked = icon;
 
 			//SetMenuItemInfo(hMenu, nIndex, MF_BYPOSITION, &mii);
 			SetMenuItemInfo(hMenu, ++nIndex, MF_BYPOSITION, &mii);
@@ -956,7 +829,6 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 	SelectObject(dcEditMask, pen);
 	RoundRect(dcEditMask, rectBox.left, rectBox.top, rectBox.right, rectBox.bottom, elipsSize, elipsSize);
 
-
 	DeleteDC(dcEditColor);
 	DeleteDC(dcEditMask);
 	DeleteDC(dcEditTemp);
@@ -990,7 +862,6 @@ void InvalidateIcon(HICON * iconSmall, HICON * iconLarge) {
 // *** Private methods ***
 STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPCSTR /*pszCmd*/, LPCSTR /*pszParam*/, int iShowCmd) {
 	TCHAR szFilename[MAX_PATH];
-	TCHAR szCustom[MAX_PATH];
 	TCHAR szMiamExecutableFilename[3 * MAX_PATH]; // Should be able to contain szFilename plus szCustom plus some additional characters.
 	LPTSTR pszCommand;
 	size_t bytesRequired = 1;
@@ -999,14 +870,12 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 
 	TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
 	DWORD regSize = 0;
-	DWORD pathSize = MAX_PATH;
 	HKEY settingKey;
 	LONG result;
 
 	wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
 	result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
 	if (result != ERROR_SUCCESS) {
-		// MsgBoxError(TEXT("Unable to open registry key."));
 		return E_FAIL;
 	}
 
@@ -1014,15 +883,9 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	if (result == ERROR_SUCCESS) {
 		bytesRequired += regSize + 2;
 	} else {
-		// MsgBoxError(TEXT("Cannot read path to executable."));
 		RegCloseKey(settingKey);
 		return E_FAIL;
 	}
-
-	/*result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, NULL, &regSize);
-	if (result == ERROR_SUCCESS) {
-		bytesRequired += regSize;
-	}*/
 
 	for (UINT i = 0; i < m_cbFiles; i++) {
 		bytesRequired += DragQueryFile((HDROP)m_stgMedium.hGlobal, i, NULL, 0);
@@ -1032,7 +895,6 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	bytesRequired *= sizeof(TCHAR);
 	pszCommand = (LPTSTR)CoTaskMemAlloc(bytesRequired);
 	if (!pszCommand) {
-		// MsgBoxError(TEXT("Insufficient memory available."));
 		RegCloseKey(settingKey);
 		return E_FAIL;
 	}
@@ -1044,11 +906,6 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	lstrcat(szMiamExecutableFilename, TEXT("\""));
 	lstrcat(szMiamExecutableFilename, szFilename);
 	lstrcat(szMiamExecutableFilename, TEXT("\""));
-	/*result = RegQueryValueEx(settingKey, TEXT("Custom"), NULL, NULL, (LPBYTE)(szCustom), &pathSize);
-	if (result == ERROR_SUCCESS) {
-		lstrcat(szMiamExecutableFilename, TEXT(" "));
-		lstrcat(szMiamExecutableFilename, szCustom);
-	}*/
 	RegCloseKey(settingKey);
 
 	// We have to open the files in batches. A command on the command-line can be at most
@@ -1124,6 +981,5 @@ STDMETHODIMP CShellExt::LoadShellIcon(int cx, int cy, HICON * phicon) {
 		hr = S_OK;
 		*phicon = hicon;
 	}
-
 	return hr;
 }

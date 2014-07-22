@@ -91,6 +91,7 @@ private:
 	TCHAR m_szModule[MAX_PATH];
 	TCHAR m_szCustomPath[MAX_PATH];
 	bool m_useCustom;
+	bool m_isActive;
 	bool m_hasSubMenu;
 	bool m_hasSendToCurrentPlaylist;
 	bool m_hasSendToNewPlaylist;

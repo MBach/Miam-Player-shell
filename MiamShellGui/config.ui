@@ -260,7 +260,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="sendToEditor">
+       <widget class="QCheckBox" name="sendToTagEditor">
         <property name="text">
          <string>Send to the Tag Editor</string>
         </property>

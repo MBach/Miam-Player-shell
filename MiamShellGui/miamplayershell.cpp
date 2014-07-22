@@ -4,7 +4,6 @@
 
 #include <QDir>
 #include <QLibrary>
-#include <QProcess>
 
 #include <QtDebug>
 
@@ -13,11 +12,7 @@ MiamPlayerShell::MiamPlayerShell()
 {
 	_library = new QLibrary(QCoreApplication::applicationDirPath() + "/MiamPlayerShell.dll", this);
 	if (_library->load()) {
-		//typedef void* (*CShellExt_create)(void);
-		//CShellExt_create cShellExt_create = (CShellExt_create) _library->resolve("CShellExt_create");
-		//_cShellExt = cShellExt_create();
-		//cShellExt_toggleSubMenu = (CShellExt_toggleSubMenu) _library->resolve("CShellExt_toggleSubMenu");
-		//disable = (CShellExt_disable) _library->resolve("CShellExt_disable");
+
 	}
 }
 
@@ -29,12 +24,12 @@ MiamPlayerShell::~MiamPlayerShell()
 void MiamPlayerShell::cleanUpBeforeDestroy()
 {
 	// Disable shell extension
-	QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:DisableContextMenu" << "/s" << _library->fileName());
+	Settings::getInstance()->setValue("MiamPlayerShell/IsActive", 0l);
 }
 
 void MiamPlayerShell::init()
 {
-	QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:EnableContextMenu" << "/s" << _library->fileName());
+	Settings::getInstance()->setValue("MiamPlayerShell/IsActive", 1l);
 }
 
 QWidget* MiamPlayerShell::configPage()
@@ -60,7 +55,7 @@ QWidget* MiamPlayerShell::configPage()
 
 	_config.subMenu->addItem(new ListWidgetItem(5, _config.sendToCurrentPlaylist->text(), _config.subMenu));
 	_config.subMenu->addItem(new ListWidgetItem(6, _config.sendToNewPlaylist->text(), _config.subMenu));
-	_config.subMenu->addItem(new ListWidgetItem(7, _config.sendToEditor->text(), _config.subMenu));
+	_config.subMenu->addItem(new ListWidgetItem(7, _config.sendToTagEditor->text(), _config.subMenu));
 	_config.subMenu->addItem(new ListWidgetItem(8, _config.addToLibrary->text(), _config.subMenu));
 
 	// Create fake arrow sign
@@ -83,7 +78,7 @@ QWidget* MiamPlayerShell::configPage()
 
 	connect(_config.sendToCurrentPlaylist, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 	connect(_config.sendToNewPlaylist, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
-	connect(_config.sendToEditor, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
+	connect(_config.sendToTagEditor, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 	connect(_config.addToLibrary, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 
 	// Init values and trigger signal
@@ -120,11 +115,10 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	QListWidget *list;
 	int row;
 	QCheckBox *checkBox = qobject_cast<QCheckBox*>(sender());
-	Settings *settings = Settings::getInstance();
-	settings->setValue("MiamPlayerShell/" + checkBox->objectName(), enabled);
 	// Convert first letter: "sendToCurrentPlaylist" -> "SendToCurrentPlaylist"
 	QString command = checkBox->objectName().at(0).toUpper() + checkBox->objectName().right(checkBox->objectName().length() - 1);
 
+	Settings *settings = Settings::getInstance();
 	if (settings->value("MiamPlayerShell/hasSubMenu").toBool()) {
 		list = _config.subMenu;
 		row = 0;
@@ -143,7 +137,6 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 				break;
 			}
 		}
-		//command.prepend("/i:Enable");
 	} else {
 		// Remove item
 		for (int i = 0; i < list->count(); i++) {
@@ -152,17 +145,8 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 				break;
 			}
 		}
-		//command.prepend("/i:Disable");
 	}
-	//QProcess::startDetached("regsvr32", QStringList() << "/n" << command << "/s" << _library->fileName());
-	//QSettings s;
-	qDebug() << command;
-	QSettings s("HKEY_CLASSES_ROOT\\CLSID\\{D38AFDB7-E7BA-4F02-A1EF-D8DCBA4E7135}\\Settings", QSettings::NativeFormat);
-	if (enabled) {
-		s.setValue("Has" + command, 1l);
-	} else {
-		s.setValue("Has" + command, 0l);
-	}
+	settings->setValue("MiamPlayerShell/Has" + command, enabled ? 1l : 0l);
 
 	this->resizeListWidget(list);
 	list->sortItems();
@@ -170,7 +154,7 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	// Avoid to have all checkboxes unchecked: if one wants to uncheck all, he should disable the plugin instead
 	QList<QCheckBox*> checkedOnes;
 	QList<QCheckBox*> checkBoxes = QList<QCheckBox*>() << _config.sendToCurrentPlaylist << _config.sendToNewPlaylist
-													   << _config.sendToEditor << _config.addToLibrary;
+													   << _config.sendToTagEditor << _config.addToLibrary;
 	foreach (QCheckBox *checkBox, checkBoxes) {
 		if (checkBox->isChecked()) {
 			checkedOnes << checkBox;
@@ -185,8 +169,6 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 			checkBox->setEnabled(true);
 		}
 	}
-	// Update the context menu
-	/// TODO
 }
 
 void MiamPlayerShell::toggleSubMenu(bool disabled)
@@ -210,15 +192,9 @@ void MiamPlayerShell::toggleSubMenu(bool disabled)
 		}
 		_config.menu->insertItem(4, item);
 	}
-	Settings::getInstance()->setValue("MiamPlayerShell/hasSubMenu", !disabled);
+	Settings::getInstance()->setValue("MiamPlayerShell/HasSubMenu", disabled ? 0l : 1l);
 	this->resizeListWidget(_config.menu);
 	this->resizeListWidget(_config.subMenu);
-
-	if (disabled) {
-		QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:DisableSubMenu" << "/s" << _library->fileName());
-	} else {
-		QProcess::startDetached("regsvr32", QStringList() << "/n" << "/i:EnableSubMenu" << "/s" << _library->fileName());
-	}
 }
 
 void MiamPlayerShell::setMediaPlayer(QWeakPointer<MediaPlayer> mediaPlayer)
