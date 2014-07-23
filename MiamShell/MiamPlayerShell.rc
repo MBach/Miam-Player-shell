@@ -48,7 +48,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     GROUPBOX        "Context Menu",IDC_STATIC,6,6,132,114
     CONTROL         "Add context menu item",IDC_CHECK_USECONTEXT,"Button",BS_AUTO3STATE | WS_TABSTOP,18,24,90,10
-    CONTROL         "Show icon",IDC_CHECK_CONTEXTICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,42,48,10
+    //CONTROL         "Show icon",IDC_CHECK_CONTEXTICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,42,48,10
     LTEXT           "Menu text",IDC_STATIC,18,54,34,8
     EDITTEXT        IDC_EDIT_MENU,24,66,102,14,ES_AUTOHSCROLL
     LTEXT           "Command line params",IDC_STATIC,18,84,70,8

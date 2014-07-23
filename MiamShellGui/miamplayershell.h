@@ -6,13 +6,9 @@
 #include "mediaplayer.h"
 #include "listwidget.h"
 
-#include <QLibrary>
 #include <QWidget>
 
 #include "ui_config.h"
-
-//typedef bool (*CShellExt_toggleSubMenu)(void *, bool);
-//typedef bool (*CShellExt_disable)(void);
 
 /**
  * \brief       The MiamPlayerShell class is a specific plugin for Windows which extends the Shell
@@ -29,11 +25,6 @@ class MIAMCORE_LIBRARY MiamPlayerShell : public QWidget, public MediaPlayerPlugi
 private:
 	Ui::MiamPlayerShellConfigPage _config;
 	QWeakPointer<MediaPlayer> _mediaPlayer;
-	QLibrary *_library;
-
-	//void * _cShellExt;
-	//CShellExt_toggleSubMenu cShellExt_toggleSubMenu;
-	//CShellExt_disable disable;
 
 public:
 	MiamPlayerShell();

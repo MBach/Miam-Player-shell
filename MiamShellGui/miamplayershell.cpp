@@ -3,23 +3,15 @@
 #include "settings.h"
 
 #include <QDir>
-#include <QLibrary>
 
 #include <QtDebug>
 
 MiamPlayerShell::MiamPlayerShell()
 	: QWidget(NULL)
-{
-	_library = new QLibrary(QCoreApplication::applicationDirPath() + "/MiamPlayerShell.dll", this);
-	if (_library->load()) {
-
-	}
-}
+{}
 
 MiamPlayerShell::~MiamPlayerShell()
-{
-	delete _library;
-}
+{}
 
 void MiamPlayerShell::cleanUpBeforeDestroy()
 {
@@ -29,7 +21,10 @@ void MiamPlayerShell::cleanUpBeforeDestroy()
 
 void MiamPlayerShell::init()
 {
-	Settings::getInstance()->setValue("MiamPlayerShell/IsActive", 1l);
+	Settings *settings = Settings::getInstance();
+	settings->beginGroup("MiamPlayerShell");
+	settings->setValue("IsActive", 1l);
+	settings->endGroup();
 }
 
 QWidget* MiamPlayerShell::configPage()
@@ -72,6 +67,7 @@ QWidget* MiamPlayerShell::configPage()
 	_config.subMenu->raise();
 
 	Settings *settings = Settings::getInstance();
+	settings->beginGroup("MiamPlayerShell");
 
 	// Swap items from one context menu to another
 	connect(_config.radioButtonDisableSubMenu, &QCheckBox::toggled, this, &MiamPlayerShell::toggleSubMenu);
@@ -82,14 +78,20 @@ QWidget* MiamPlayerShell::configPage()
 	connect(_config.addToLibrary, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 
 	// Init values and trigger signal
-	if (!settings->value("MiamPlayerShell/hasSubMenu", true).toBool()) {
+	if (!settings->value("hasSubMenu", true).toBool()) {
 		_config.radioButtonDisableSubMenu->toggle();
 	}
 
 	// Hide last item
-	if (!settings->value("MiamPlayerShell/addToLibrary", false).toBool()) {
+	/*if (!settings->value("addToLibrary", 0).toInt()) {
 		_config.addToLibrary->toggle();
+	}*/
+
+	foreach (QCheckBox *checkBox, _config.actionsGroupBox->findChildren<QCheckBox*>()) {
+		settings->setValue(checkBox->objectName(), checkBox->text());
 	}
+	settings->endGroup();
+
 	this->resizeListWidget(_config.menu);
 	this->resizeListWidget(_config.subMenu);
 	return widget;
@@ -115,8 +117,6 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	QListWidget *list;
 	int row;
 	QCheckBox *checkBox = qobject_cast<QCheckBox*>(sender());
-	// Convert first letter: "sendToCurrentPlaylist" -> "SendToCurrentPlaylist"
-	QString command = checkBox->objectName().at(0).toUpper() + checkBox->objectName().right(checkBox->objectName().length() - 1);
 
 	Settings *settings = Settings::getInstance();
 	if (settings->value("MiamPlayerShell/hasSubMenu").toBool()) {
@@ -146,7 +146,7 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 			}
 		}
 	}
-	settings->setValue("MiamPlayerShell/Has" + command, enabled ? 1l : 0l);
+	settings->setValue("MiamPlayerShell/Has" + checkBox->objectName(), enabled ? 1l : 0l);
 
 	this->resizeListWidget(list);
 	list->sortItems();

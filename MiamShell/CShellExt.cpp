@@ -4,11 +4,12 @@
 #include <shellapi.h>
 #include <algorithm>
 #include <wchar.h>
+#include <Strsafe.h>
+#include <vector>
 
 #ifndef RGBA
 #define RGBA(r,g,b,a)        ((COLORREF)( (((DWORD)(BYTE)(a))<<24) |     RGB(r,g,b) ))
 #endif
-
 
 //---------------------------------------------------------------------------
 //  Global variables
@@ -31,7 +32,6 @@ STDAPI DllUnregisterServer(void);
 BOOL RegisterServer();
 BOOL UnregisterServer();
 void MsgBoxError(LPCTSTR lpszMsg);
-BOOL CheckMiamPlayer(LPCTSTR path);
 void InvalidateIcon(HICON * iconSmall, HICON * iconLarge);
 
 //Types
@@ -109,10 +109,6 @@ STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/)
 //---------------------------------------------------------------------------
 BOOL RegisterServer()
 {
-	int      i;
-	HKEY     hKey;
-	LRESULT  lResult;
-	DWORD    dwDisp;
 	DWORD    isActive = TRUE;
 	DWORD    hasSubMenu = TRUE;
 	DWORD    hasSendToCurrentPlaylist = TRUE;
@@ -129,11 +125,6 @@ BOOL RegisterServer()
 	pDest[0] = 0;
 	lstrcat(szDefaultPath, TEXT("MiamPlayer.exe"));
 
-	if (!CheckMiamPlayer(szDefaultPath)) {
-		// MsgBoxError(TEXT("To register the MiamPlayer shell extension properly,\r\nplace MiamPlayerShell.dll in the same directory as the MiamPlayer executable."));
-		//return FALSE;
-	}
-
 	LPWSTR miamShell = TEXT("Software\\MmeMiamMiam\\MiamPlayer\\MiamPlayerShell");
 
 	//get this app's path and file name
@@ -146,10 +137,10 @@ BOOL RegisterServer()
 
 		//Settings
 		// Context menu
-		{HKEY_CURRENT_USER,	miamShell,					TEXT("SendToCurrentPlaylist"),		REG_SZ,		TEXT("Send to current Playlist")},
-		{HKEY_CURRENT_USER,	miamShell,					TEXT("SendToNewPlaylist"),			REG_SZ,		TEXT("Send to new Playlist")},
-		{HKEY_CURRENT_USER,	miamShell,					TEXT("SendToTagEditor"),			REG_SZ,		TEXT("Send to Tag Editor")},
-		{HKEY_CURRENT_USER,	miamShell,					TEXT("AddToLibrary"),				REG_SZ,		TEXT("Add to Library")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("sendToCurrentPlaylist"),		REG_SZ,		TEXT("Send to current Playlist")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("sendToNewPlaylist"),			REG_SZ,		TEXT("Send to new Playlist")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("sendToTagEditor"),			REG_SZ,		TEXT("Send to Tag Editor")},
+		{HKEY_CURRENT_USER,	miamShell,					TEXT("addToLibrary"),				REG_SZ,		TEXT("Add to Library")},
 		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasSendToCurrentPlaylist"),	REG_DWORD,	(LPTSTR)&hasSendToCurrentPlaylist},
 		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasSendToNewPlaylist"),		REG_DWORD,	(LPTSTR)&hasSendToNewPlaylist},
 		{HKEY_CURRENT_USER,	miamShell,					TEXT("HasSendToTagEditor"),			REG_DWORD,	(LPTSTR)&hasSendToTagEditor},
@@ -170,9 +161,11 @@ BOOL RegisterServer()
 	UnregisterServer();
 
 	// Register the CLSID entries
-	for (i = 0; ClsidEntries[i].hRootKey; i++) {
+	for (int i = 0; ClsidEntries[i].hRootKey; i++) {
 		wsprintf(szSubKey, ClsidEntries[i].szSubKey, szGUID);
-		lResult = RegCreateKeyEx(ClsidEntries[i].hRootKey, szSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &dwDisp);
+		HKEY hKey;
+		DWORD dwDisp;
+		LRESULT lResult = RegCreateKeyEx(ClsidEntries[i].hRootKey, szSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &dwDisp);
 		if (NOERROR == lResult) {
 			TCHAR szData[MAX_PATH];
 			// If necessary, create the value string
@@ -219,27 +212,7 @@ BOOL UnregisterServer()
 //---------------------------------------------------------------------------
 void MsgBoxError(LPCTSTR lpszMsg)
 {
-	MessageBox(NULL,
-			   lpszMsg,
-			   TEXT("MiamPlayer Extension: Error"),
-			   MB_OK | MB_ICONWARNING);
-}
-
-//---------------------------------------------------------------------------
-// CheckMiamPlayer
-// Check if the shell handler resides in the same directory as MiamPlayer
-//---------------------------------------------------------------------------
-BOOL CheckMiamPlayer(LPCTSTR path) {
-	WIN32_FIND_DATA fd;
-	HANDLE findHandle;
-
-	findHandle = FindFirstFile(path, &fd);
-	if (findHandle == INVALID_HANDLE_VALUE) {
-		return FALSE;
-	} else {
-		FindClose(findHandle);
-	}
-	return TRUE;
+	MessageBox(NULL, lpszMsg, TEXT("MiamPlayer Extension: Error"), MB_OK | MB_ICONWARNING);
 }
 
 // --- CShellExtClassFactory ---
@@ -285,7 +258,7 @@ STDMETHODIMP CShellExtClassFactory::CreateInstance(LPUNKNOWN pUnkOuter, REFIID r
 	*ppvObj = NULL;
 	if (pUnkOuter)
 		return CLASS_E_NOAGGREGATION;
-	CShellExt * pShellExt = new CShellExt();
+	CShellExt *pShellExt = new CShellExt();
 	if (!pShellExt)
 		return E_OUTOFMEMORY;
 	return pShellExt->QueryInterface(riid, ppvObj);
@@ -303,7 +276,6 @@ CShellExt::CShellExt() :
 	m_pDataObj(NULL),
 	m_menuID(0),
 	m_hMenu(NULL),
-	m_useCustom(false),
 	m_isActive(true),
 	m_hasSubMenu(true),
 	m_hasSendToCurrentPlaylist(true),
@@ -311,9 +283,7 @@ CShellExt::CShellExt() :
 	m_hasSendToTagEditor(true),
 	m_hasAddToLibrary(true),
 	m_nameLength(0),
-	m_nameMaxLength(maxText),
-	m_isDynamic(false),
-	m_winVer(0)
+	m_nameMaxLength(maxText)
 {
 	ZeroMemory(&m_stgMedium, sizeof(m_stgMedium));
 	_cRef++;
@@ -323,42 +293,35 @@ CShellExt::CShellExt() :
 	OSVERSIONINFOEX inf;
 	ZeroMemory(&inf, sizeof(OSVERSIONINFOEX));
 	inf.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	GetVersionEx((OSVERSIONINFO *)&inf);
-	m_winVer = MAKEWORD(inf.dwMinorVersion, inf.dwMajorVersion);
 
-	if (m_winVer >= WINVER_VISTA) {
-		InitTheming();
-	}
+	InitTheming();
 
 	HKEY settingKey;
 	LONG result;
 	DWORD size = 0;
 	DWORD siz = 0;
 
-	//Menu
-	TCHAR szDefaultSendToCurrentPlaylist[] = TEXT("Send to current Playlist");
-
 	result = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\MmeMiamMiam\\MiamPlayer\\MiamPlayerShell"), 0, KEY_READ, &settingKey);
 	if (result == ERROR_SUCCESS) {
 		size = sizeof(TCHAR)*TITLE_SIZE;
-		result = RegQueryValueEx(settingKey, TEXT("SendToCurrentPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToCurrentPlaylist), &size);
+		result = RegQueryValueEx(settingKey, TEXT("sendToCurrentPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToCurrentPlaylist), &size);
 		if (result != ERROR_SUCCESS) {
-			lstrcpyn(m_szMenuSendToCurrentPlaylist, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
+			StringCchCopy(m_szMenuSendToCurrentPlaylist, TITLE_SIZE, TEXT("Send to current Playlist"));
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("SendToNewPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToNewPlaylist), &size);
+		result = RegQueryValueEx(settingKey, TEXT("sendToNewPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToNewPlaylist), &size);
 		if (result != ERROR_SUCCESS) {
-			lstrcpyn(m_szMenuSendToNewPlaylist, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
+			StringCchCopy(m_szMenuSendToNewPlaylist, TITLE_SIZE, TEXT("Send to new Playlist"));
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("SendToTagEditor"), NULL, NULL, (LPBYTE)(m_szMenuSendToTagEditor), &size);
+		result = RegQueryValueEx(settingKey, TEXT("sendToTagEditor"), NULL, NULL, (LPBYTE)(m_szMenuSendToTagEditor), &size);
 		if (result != ERROR_SUCCESS) {
-			lstrcpyn(m_szMenuSendToTagEditor, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
+			StringCchCopy(m_szMenuSendToTagEditor, TITLE_SIZE, TEXT("Send to Tag Editor"));
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("AddToLibrary"), NULL, NULL, (LPBYTE)(m_szMenuAddToLibrary), &size);
+		result = RegQueryValueEx(settingKey, TEXT("addToLibrary"), NULL, NULL, (LPBYTE)(m_szMenuAddToLibrary), &size);
 		if (result != ERROR_SUCCESS) {
-			lstrcpyn(m_szMenuAddToLibrary, szDefaultSendToCurrentPlaylist, TITLE_SIZE);
+			StringCchCopy(m_szMenuAddToLibrary, TITLE_SIZE, TEXT("Add to Library"));
 		}
 
 		size = sizeof(DWORD);
@@ -404,9 +367,9 @@ CShellExt::CShellExt() :
 
 CShellExt::~CShellExt()
 {
-	if (m_winVer >= WINVER_VISTA) {
-		DeinitTheming();
-	}
+	//if (m_winVer >= WINVER_VISTA) {
+	DeinitTheming();
+	//}
 
 	if (m_pDataObj)
 		m_pDataObj->Release();
@@ -497,16 +460,16 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 		HMENU hSubmenu = CreatePopupMenu();
 		int i = 0;
 		if (m_hasSendToCurrentPlaylist) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current Playlist"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToCurrentPlaylist);
 		}
 		if (m_hasSendToNewPlaylist) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to new Playlist"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToNewPlaylist);
 		}
 		if (m_hasSendToTagEditor) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to Tag Editor"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToTagEditor);
 		}
 		if (m_hasAddToLibrary) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to Library"));
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuAddToLibrary);
 		}
 
 		MENUITEMINFO menuItemInfo = { sizeof(MENUITEMINFO) };
@@ -517,34 +480,34 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 		InsertMenuItem(hMenu, indexMenu, TRUE, &menuItemInfo);
 	} else {
 		if (m_hasSendToCurrentPlaylist) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to current Playlist"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToCurrentPlaylist);
 		}
 		if (m_hasSendToNewPlaylist) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to new Playlist"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToNewPlaylist);
 		}
 		if (m_hasSendToTagEditor) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Send to Tag Editor"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToTagEditor);
 		}
 		if (m_hasAddToLibrary) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, TEXT("Add to Library"));
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuAddToLibrary);
 		}
 	}
 
 	if (m_hasSubMenu) {
 		HBITMAP icon = NULL;
-		if (m_winVer >= WINVER_VISTA) {
-			icon = NULL;
-			HICON hicon;
-			DWORD menuIconWidth = GetSystemMetrics(SM_CXMENUCHECK);
-			DWORD menuIconHeight = GetSystemMetrics(SM_CYMENUCHECK);
-			HRESULT hr = LoadShellIcon(menuIconWidth, menuIconHeight, &hicon);
-			if (SUCCEEDED(hr)) {
-				icon = IconToBitmapPARGB32(hicon, menuIconWidth, menuIconHeight);
-				DestroyIcon(hicon);
-			}
-		} else {
-			icon = HBMMENU_CALLBACK;
+		//if (m_winVer >= WINVER_VISTA) {
+		icon = NULL;
+		HICON hicon;
+		DWORD menuIconWidth = GetSystemMetrics(SM_CXMENUCHECK);
+		DWORD menuIconHeight = GetSystemMetrics(SM_CYMENUCHECK);
+		HRESULT hr = LoadShellIcon(menuIconWidth, menuIconHeight, &hicon);
+		if (SUCCEEDED(hr)) {
+			icon = IconToBitmapPARGB32(hicon, menuIconWidth, menuIconHeight);
+			DestroyIcon(hicon);
 		}
+		//} else {
+		//	icon = HBMMENU_CALLBACK;
+		//}
 
 		if (icon != NULL) {
 			MENUITEMINFO mii;
@@ -556,14 +519,14 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 			//SetMenuItemInfo(hMenu, nIndex, MF_BYPOSITION, &mii);
 			SetMenuItemInfo(hMenu, ++nIndex, MF_BYPOSITION, &mii);
 
-			if (m_winVer >= WINVER_VISTA) {
-				MENUINFO menuInfo;
-				menuInfo.cbSize = sizeof(menuInfo);
-				menuInfo.fMask = MIM_STYLE;
-				menuInfo.dwStyle = MNS_CHECKORBMP;
+			//if (m_winVer >= WINVER_VISTA) {
+			MENUINFO menuInfo;
+			menuInfo.cbSize = sizeof(menuInfo);
+			menuInfo.fMask = MIM_STYLE;
+			menuInfo.dwStyle = MNS_CHECKORBMP;
 
-				SetMenuInfo(hMenu, &menuInfo);
-			}
+			SetMenuInfo(hMenu, &menuInfo);
+			//}
 		}
 	}
 	m_hMenu = hMenu;
@@ -574,19 +537,30 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 
 STDMETHODIMP CShellExt::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 {
-	HRESULT hr = E_INVALIDARG;
-
 	if (!HIWORD(lpcmi->lpVerb)) {
 		UINT idCmd = LOWORD(lpcmi->lpVerb);
 		switch(idCmd) {
-			case 0:
-				hr = InvokeMiamPlayer(lpcmi->hwnd, lpcmi->lpDirectory, lpcmi->lpVerb, lpcmi->lpParameters, lpcmi->nShow);
-				break;
-			default:
-				break;
+		case 0: {
+			InvokeMiamPlayer(lpcmi->hwnd, lpcmi->lpDirectory, TEXT(" -f "), lpcmi->lpParameters, lpcmi->nShow);
+			break;
+		}
+		case 1: {
+			InvokeMiamPlayer(lpcmi->hwnd, lpcmi->lpDirectory, TEXT(" -n "), lpcmi->lpParameters, lpcmi->nShow);
+			break;
+		}
+		case 2: {
+			InvokeMiamPlayer(lpcmi->hwnd, lpcmi->lpDirectory, TEXT(" -t "), lpcmi->lpParameters, lpcmi->nShow);
+			break;
+		}
+		case 3: {
+			InvokeMiamPlayer(lpcmi->hwnd, lpcmi->lpDirectory, TEXT(" -l "), lpcmi->lpParameters, lpcmi->nShow);
+			break;
+		}
+		default:
+			break;
 		}
 	}
-	return hr;
+	return NOERROR;
 }
 
 STDMETHODIMP CShellExt::GetCommandString(UINT_PTR, UINT uFlags, UINT FAR *, LPSTR pszName, UINT cchMax)
@@ -648,11 +622,7 @@ STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 // *** IPersistFile methods ***
 HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*/) {
 	LPTSTR file[MAX_PATH];
-#ifdef UNICODE
-	lstrcpyn((LPWSTR)file, pszFileName, MAX_PATH);
-#else
-	WideCharToMultiByte(CP_ACP, 0, pszFileName, -1, (LPSTR)file, MAX_PATH, NULL, NULL);
-#endif
+	StringCchCopy((LPWSTR)file, MAX_PATH, pszFileName);
 	m_szFilePath[0] = 0;
 
 	LPTSTR ext = PathFindExtension((LPTSTR)file);
@@ -660,7 +630,7 @@ HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*
 		ext++;
 	}
 	int copySize = std::min(m_nameMaxLength + 1, MAX_PATH);	//+1 to take zero terminator in account
-	lstrcpyn(m_szFilePath, ext, copySize);
+	StringCchCopy(m_szFilePath, copySize, ext);
 	m_nameLength = lstrlen(m_szFilePath);
 	CharUpperBuff(m_szFilePath, m_nameLength);
 	return S_OK;
@@ -669,21 +639,21 @@ HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*
 // *** IExtractIcon methods ***
 STDMETHODIMP CShellExt::GetIconLocation(UINT uFlags, LPTSTR szIconFile, UINT cchMax, int * piIndex, UINT * pwFlags) {
 	*pwFlags = 0;
-	if (uFlags & GIL_DEFAULTICON || m_szFilePath[0] == 0 || !m_isDynamic) {	//return regular MiamPlayer icon if requested OR the extension is bad OR static icon
-		if (!m_useCustom) {
-			lstrcpyn(szIconFile, m_szModule, cchMax);
-			*piIndex = 0;
-		} else {
-			lstrcpyn(szIconFile, m_szCustomPath, cchMax);
-			*piIndex = 0;
-		}
+	if (uFlags & GIL_DEFAULTICON || m_szFilePath[0] == 0) {	//return regular MiamPlayer icon if requested OR the extension is bad OR static icon
+		//if (!m_useCustom) {
+		StringCchCopy(szIconFile, cchMax, m_szModule);
+		*piIndex = 0;
+		//} else {
+		//	StringCchCopy(szIconFile, cchMax, m_szCustomPath);
+		//	*piIndex = 0;
+		//}
 		return S_OK;
 	}
 
 	if(cchMax > 0) {
-		lstrcpyn(szIconFile, TEXT("MiamPlayerShellIcon"), cchMax);
+		StringCchCopy(szIconFile, cchMax, TEXT("MiamPlayerShellIcon"));
 		int len = lstrlen(szIconFile);
-		lstrcpyn(szIconFile, m_szFilePath, cchMax-len);
+		StringCchCopy(szIconFile, cchMax-len, m_szFilePath);
 	}
 	*piIndex = 0;
 	*pwFlags |= GIL_NOTFILENAME;//|GIL_DONTCACHE|GIL_PERINSTANCE;
@@ -708,7 +678,7 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 		return S_FALSE;
 	}
 
-	if (!m_isDynamic || !phiconLarge || sizeLarge < 32)	//No modifications required
+	if (!phiconLarge || sizeLarge < 32)	//No modifications required
 		return S_OK;
 
 	HDC dcEditColor, dcEditMask, dcEditTemp;
@@ -754,7 +724,7 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 	lf.lfHeight = calSize;
 	lf.lfWeight = FW_NORMAL;
 	lf.lfCharSet = DEFAULT_CHARSET;
-	lstrcpyn(lf.lfFaceName, TEXT("Courier New"), LF_FACESIZE);
+	StringCchCopy(lf.lfFaceName, LF_FACESIZE, TEXT("Courier New"));
 	RECT rectText = {0, 0, 0, 0};
 	RECT rectBox = {0, 0, 0, 0};
 	COLORREF backGround = RGB(1, 1, 60);
@@ -859,9 +829,14 @@ void InvalidateIcon(HICON * iconSmall, HICON * iconLarge) {
 	}
 }
 
+
+
+bool sortFile(LPWSTR i, LPWSTR j) {
+	return (StrCmpLogicalW(i, j) < 0);
+}
+
 // *** Private methods ***
-STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPCSTR /*pszCmd*/, LPCSTR /*pszParam*/, int iShowCmd) {
-	TCHAR szFilename[MAX_PATH];
+void CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPCWSTR pszCmd, LPCSTR /*pszParam*/, int iShowCmd) {
 	TCHAR szMiamExecutableFilename[3 * MAX_PATH]; // Should be able to contain szFilename plus szCustom plus some additional characters.
 	LPTSTR pszCommand;
 	size_t bytesRequired = 1;
@@ -876,7 +851,7 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	wsprintf(szKeyTemp, TEXT("CLSID\\%s\\Settings"), szGUID);
 	result = RegOpenKeyEx(HKEY_CLASSES_ROOT, szKeyTemp, 0, KEY_READ, &settingKey);
 	if (result != ERROR_SUCCESS) {
-		return E_FAIL;
+		return;
 	}
 
 	result = RegQueryValueEx(settingKey, TEXT("Path"), NULL, NULL, NULL, &regSize);
@@ -884,7 +859,7 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 		bytesRequired += regSize + 2;
 	} else {
 		RegCloseKey(settingKey);
-		return E_FAIL;
+		return;
 	}
 
 	for (UINT i = 0; i < m_cbFiles; i++) {
@@ -896,11 +871,12 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	pszCommand = (LPTSTR)CoTaskMemAlloc(bytesRequired);
 	if (!pszCommand) {
 		RegCloseKey(settingKey);
-		return E_FAIL;
+		return;
 	}
 	*pszCommand = 0;
 
 	regSize = (DWORD)MAX_PATH*sizeof(TCHAR);
+	TCHAR szFilename[MAX_PATH];
 	result = RegQueryValueEx(settingKey, TEXT("Path"), NULL, NULL, (LPBYTE)(szFilename), &regSize);
 	szFilename[MAX_PATH-1] = 0;
 	lstrcat(szMiamExecutableFilename, TEXT("\""));
@@ -915,20 +891,26 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 	// Note the +2 to account for the path to MiamPlayer.exe.
 	// http://stackoverflow.com/questions/3205027/maximum-length-of-command-line-string
 
-	const UINT kiBatchSize = m_winVer > WINVER_XP ? 100 : 4;
+	const UINT kiBatchSize = 100;
 
 	UINT iFileIndex = 0;
 	while (iFileIndex < m_cbFiles) {
 		memset(pszCommand, 0, bytesRequired);
-		lstrcat(pszCommand, szMiamExecutableFilename);
+		StringCchCat(pszCommand, MAX_PATH, szMiamExecutableFilename);
+		StringCchCat(pszCommand, MAX_PATH, pszCmd);
+
+		std::vector<LPWSTR> files;
 		for (UINT iBatchSizeCounter = 0; iFileIndex < m_cbFiles && iBatchSizeCounter < kiBatchSize; iBatchSizeCounter++) {
-			DragQueryFile((HDROP)m_stgMedium.hGlobal, iFileIndex, szFilename, MAX_PATH);
-			// Open file command "-f"
-			lstrcat(pszCommand, TEXT(" -f "));
-			lstrcat(pszCommand, TEXT(" \""));
-			lstrcat(pszCommand, szFilename);
-			lstrcat(pszCommand, TEXT("\""));
+			LPWSTR file = new TCHAR[MAX_PATH];
+			DragQueryFile((HDROP)m_stgMedium.hGlobal, iFileIndex, file, MAX_PATH);
+			files.push_back(file);
 			iFileIndex++;
+		}
+		std::sort(files.begin(), files.end(), sortFile);
+		for (std::vector<LPWSTR>::iterator it = files.begin(); it != files.end(); ++it) {
+			lstrcat(pszCommand, TEXT(" \""));
+			lstrcat(pszCommand, *it);
+			lstrcat(pszCommand, TEXT("\""));
 		}
 
 		STARTUPINFO si;
@@ -946,7 +928,6 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 				if (execVal <= (HINSTANCE)32) {
 					TCHAR * message = new TCHAR[512+bytesRequired];
 					wsprintf(message, TEXT("ShellExecute failed (%d): Is this command correct?\r\n%s"), execVal, pszCommand);
-					// MsgBoxError(message);
 					delete [] message;
 				}
 			} else {
@@ -958,16 +939,16 @@ STDMETHODIMP CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDi
 		}
 	}
 	CoTaskMemFree(pszCommand);
-	return NOERROR;
 }
 
-STDMETHODIMP CShellExt::LoadShellIcon(int cx, int cy, HICON * phicon) {
+STDMETHODIMP CShellExt::LoadShellIcon(int cx, int cy, HICON * phicon)
+{
 	HRESULT hr = E_OUTOFMEMORY;
 	HICON hicon = NULL;
 
-	if (m_useCustom) {
-		hicon = (HICON)LoadImage(NULL, m_szCustomPath, IMAGE_ICON, cx, cy, LR_DEFAULTCOLOR|LR_LOADFROMFILE);
-	}
+	//if (m_useCustom) {
+	//	hicon = (HICON)LoadImage(NULL, m_szCustomPath, IMAGE_ICON, cx, cy, LR_DEFAULTCOLOR|LR_LOADFROMFILE);
+	//}
 
 	//Either no custom defined, or failed and use fallback
 	if (hicon == NULL) {

@@ -90,7 +90,7 @@ private:
 	TCHAR m_szFilePath[MAX_PATH];
 	TCHAR m_szModule[MAX_PATH];
 	TCHAR m_szCustomPath[MAX_PATH];
-	bool m_useCustom;
+	//bool m_useCustom;
 	bool m_isActive;
 	bool m_hasSubMenu;
 	bool m_hasSendToCurrentPlaylist;
@@ -99,12 +99,10 @@ private:
 	bool m_hasAddToLibrary;
 	int m_nameLength;
 	int m_nameMaxLength;
-	bool m_isDynamic;
-
-	DWORD m_winVer;	//current windows version
+	//bool m_isDynamic;
 
 	// *** Private methods ***
-	STDMETHODIMP InvokeMiamPlayer(HWND hParent, LPCSTR pszWorkingDir, LPCSTR pszCmd, LPCSTR pszParam, int iShowCmd);
+	void InvokeMiamPlayer(HWND hParent, LPCSTR pszWorkingDir, const wchar_t pszCmd[], LPCSTR pszParam, int iShowCmd);
 	STDMETHODIMP LoadShellIcon(int cx, int cy, HICON * phicon);
 
 public:
