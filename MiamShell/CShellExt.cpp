@@ -4,6 +4,7 @@
 #include <shellapi.h>
 #include <algorithm>
 #include <wchar.h>
+#include <atlbase.h>
 #include <Strsafe.h>
 #include <vector>
 
@@ -281,7 +282,7 @@ CShellExt::CShellExt() :
 	m_hasSendToCurrentPlaylist(true),
 	m_hasSendToNewPlaylist(true),
 	m_hasSendToTagEditor(true),
-	m_hasAddToLibrary(true),
+	m_hasAddToLibrary(false),
 	m_nameLength(0),
 	m_nameMaxLength(maxText)
 {
@@ -367,9 +368,7 @@ CShellExt::CShellExt() :
 
 CShellExt::~CShellExt()
 {
-	//if (m_winVer >= WINVER_VISTA) {
 	DeinitTheming();
-	//}
 
 	if (m_pDataObj)
 		m_pDataObj->Release();
@@ -460,18 +459,21 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 		HMENU hSubmenu = CreatePopupMenu();
 		int i = 0;
 		if (m_hasSendToCurrentPlaylist) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToCurrentPlaylist);
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID, m_szMenuSendToCurrentPlaylist);
 		}
+		uID++;
 		if (m_hasSendToNewPlaylist) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToNewPlaylist);
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID, m_szMenuSendToNewPlaylist);
 		}
+		uID++;
 		if (m_hasSendToTagEditor) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToTagEditor);
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID, m_szMenuSendToTagEditor);
 		}
+		uID++;
 		if (m_hasAddToLibrary) {
-			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuAddToLibrary);
+			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID, m_szMenuAddToLibrary);
 		}
-
+		uID++;
 		MENUITEMINFO menuItemInfo = { sizeof(MENUITEMINFO) };
 		menuItemInfo.fMask = MIIM_SUBMENU | MIIM_STRING | MIIM_ID;
 		menuItemInfo.wID = uID++;
@@ -480,23 +482,25 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 		InsertMenuItem(hMenu, indexMenu, TRUE, &menuItemInfo);
 	} else {
 		if (m_hasSendToCurrentPlaylist) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToCurrentPlaylist);
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID, m_szMenuSendToCurrentPlaylist);
 		}
+		uID++;
 		if (m_hasSendToNewPlaylist) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToNewPlaylist);
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID, m_szMenuSendToNewPlaylist);
 		}
+		uID++;
 		if (m_hasSendToTagEditor) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuSendToTagEditor);
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID, m_szMenuSendToTagEditor);
 		}
+		uID++;
 		if (m_hasAddToLibrary) {
-			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID++, m_szMenuAddToLibrary);
+			InsertMenu(hMenu, nIndex++, MF_STRING|MF_BYPOSITION, uID, m_szMenuAddToLibrary);
 		}
+		uID++;
 	}
 
 	if (m_hasSubMenu) {
 		HBITMAP icon = NULL;
-		//if (m_winVer >= WINVER_VISTA) {
-		icon = NULL;
 		HICON hicon;
 		DWORD menuIconWidth = GetSystemMetrics(SM_CXMENUCHECK);
 		DWORD menuIconHeight = GetSystemMetrics(SM_CYMENUCHECK);
@@ -505,9 +509,6 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 			icon = IconToBitmapPARGB32(hicon, menuIconWidth, menuIconHeight);
 			DestroyIcon(hicon);
 		}
-		//} else {
-		//	icon = HBMMENU_CALLBACK;
-		//}
 
 		if (icon != NULL) {
 			MENUITEMINFO mii;
@@ -516,7 +517,6 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 			mii.fMask = MIIM_BITMAP;
 			mii.hbmpItem = icon;
 
-			//SetMenuItemInfo(hMenu, nIndex, MF_BYPOSITION, &mii);
 			SetMenuItemInfo(hMenu, ++nIndex, MF_BYPOSITION, &mii);
 
 			//if (m_winVer >= WINVER_VISTA) {
@@ -620,7 +620,8 @@ STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 }
 
 // *** IPersistFile methods ***
-HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*/) {
+HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*/)
+{
 	LPTSTR file[MAX_PATH];
 	StringCchCopy((LPWSTR)file, MAX_PATH, pszFileName);
 	m_szFilePath[0] = 0;
@@ -637,16 +638,12 @@ HRESULT STDMETHODCALLTYPE CShellExt::Load(LPCOLESTR pszFileName, DWORD /*dwMode*
 }
 
 // *** IExtractIcon methods ***
-STDMETHODIMP CShellExt::GetIconLocation(UINT uFlags, LPTSTR szIconFile, UINT cchMax, int * piIndex, UINT * pwFlags) {
+STDMETHODIMP CShellExt::GetIconLocation(UINT uFlags, LPTSTR szIconFile, UINT cchMax, int * piIndex, UINT * pwFlags)
+{
 	*pwFlags = 0;
 	if (uFlags & GIL_DEFAULTICON || m_szFilePath[0] == 0) {	//return regular MiamPlayer icon if requested OR the extension is bad OR static icon
-		//if (!m_useCustom) {
 		StringCchCopy(szIconFile, cchMax, m_szModule);
 		*piIndex = 0;
-		//} else {
-		//	StringCchCopy(szIconFile, cchMax, m_szCustomPath);
-		//	*piIndex = 0;
-		//}
 		return S_OK;
 	}
 
