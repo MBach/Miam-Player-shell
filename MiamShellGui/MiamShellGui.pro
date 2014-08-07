@@ -21,14 +21,14 @@ CONFIG(release, debug|release) {
 
 INSTALLS += target
 
-HEADERS += basicplugininterface.h \
-    miamcore_global.h \
-    settings.h \
+HEADERS += basicplugin.h \
     filehelper.h \
-    miamplayershell.h \
-    mediaplayerplugininterface.h \
+    listwidget.h \
     mediaplayer.h \
-    listwidget.h
+    mediaplayerplugin.h \
+    miamcore_global.h \
+    miamplayershell.h \
+    settings.h
 
 SOURCES += miamplayershell.cpp \
     listwidget.cpp

@@ -41,7 +41,7 @@ QWidget* MiamPlayerShell::configPage()
 	_config.menu->addItem(new ListWidgetItem(1, tr("Open in new window"), _config.menu));
 	_config.menu->addItem(new ListWidgetItem(2, "", _config.menu));
 	_config.menu->addItem(new ListWidgetItem(3, tr("Share with"), _config.menu));
-	_config.menu->addItem(new ListWidgetItem(4, QIcon(":/MiamPlayerShell/mp.ico"), "Miam-PLayer", _config.menu));
+	_config.menu->addItem(new ListWidgetItem(4, QIcon(":/MiamPlayerShell/mp.ico"), "Miam-Player", _config.menu));
 	_config.menu->addItem(new ListWidgetItem(9, tr("Include in Library"), _config.menu));
 	_config.menu->addItem(new ListWidgetItem(10, tr("Pin to Start"), _config.menu));
 	_config.menu->addItem(new ListWidgetItem(11, "", _config.menu));

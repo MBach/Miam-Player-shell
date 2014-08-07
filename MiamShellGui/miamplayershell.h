@@ -1,7 +1,7 @@
 #ifndef MIAMPLAYERSHELL_H
 #define MIAMPLAYERSHELL_H
 
-#include "mediaplayerplugininterface.h"
+#include "mediaplayerplugin.h"
 #include "miamcore_global.h"
 #include "mediaplayer.h"
 #include "listwidget.h"
@@ -16,11 +16,11 @@
  * \version     0.1
  * \copyright   GNU General Public License v3
  */
-class MIAMCORE_LIBRARY MiamPlayerShell : public QWidget, public MediaPlayerPluginInterface
+class MIAMCORE_LIBRARY MiamPlayerShell : public QWidget, public MediaPlayerPlugin
 {
 	Q_OBJECT
-	Q_PLUGIN_METADATA(IID MediaPlayerPluginInterface_iid)
-	Q_INTERFACES(MediaPlayerPluginInterface)
+	Q_PLUGIN_METADATA(IID MediaPlayerPlugin_iid)
+	Q_INTERFACES(MediaPlayerPlugin)
 
 private:
 	Ui::MiamPlayerShellConfigPage _config;

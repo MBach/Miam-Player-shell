@@ -1,18 +1,20 @@
-#ifndef BASICPLUGININTERFACE_H
-#define BASICPLUGININTERFACE_H
+#ifndef BASICPLUGIN_H
+#define BASICPLUGIN_H
 
-#include <QString>
+#include <QStringList>
 #include <QTranslator>
 #include <QtPlugin>
 
 #include "miamcore_global.h"
 
-class MIAMCORE_LIBRARY BasicPluginInterface
+class MIAMCORE_LIBRARY BasicPlugin
 {
 public:
 	QTranslator translator;
 
-	virtual ~BasicPluginInterface() {}
+	virtual ~BasicPlugin() {}
+
+	virtual QStringList classesToExtend() { return QStringList(); }
 
 	virtual void cleanUpBeforeDestroy() {}
 
@@ -29,10 +31,10 @@ public:
 
 QT_BEGIN_NAMESPACE
 
-#define BasicPluginInterface_iid "MiamPlayer.BasicPluginInterface"
+#define BasicPlugin_iid "MiamPlayer.BasicPlugin"
 
-Q_DECLARE_INTERFACE(BasicPluginInterface, BasicPluginInterface_iid)
+Q_DECLARE_INTERFACE(BasicPlugin, BasicPlugin_iid)
 
 QT_END_NAMESPACE
 
-#endif // BASICPLUGININTERFACE_H
+#endif // BASICPLUGIN_H
