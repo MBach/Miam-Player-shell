@@ -11,11 +11,11 @@
 class Cover;
 
 namespace TagLib {
-    class File;
+	class File;
 
-    namespace ID3v2 {
-        class Tag;
-    }
+	namespace ID3v2 {
+		class Tag;
+	}
 }
 
 /**
@@ -27,91 +27,91 @@ namespace TagLib {
 class MIAMCORE_LIBRARY FileHelper
 {
 private:
-    TagLib::File *_file;
+	TagLib::File *_file;
 
-    int fileType;
+	int fileType;
 
-    QFileInfo _fileInfo;
+	QFileInfo _fileInfo;
 
-    Q_ENUMS(extension)
-
-public:
-    enum extension {
-        UNKNOWN = -1,
-        APE		= 0,
-        ASF		= 1,
-        FLAC	= 2,
-        MP4		= 4,
-        MPC		= 5,
-        MP3		= 6,
-        OGG		= 7
-    };
-
-    enum TagKey {
-        Artist
-    };
-
-    FileHelper(const QMediaContent &track);
-
-    FileHelper(const QString &filePath);
-
-private:
-    bool init(const QString &filePath);
+	Q_ENUMS(extension)
 
 public:
-    virtual ~FileHelper();
+	enum extension {
+		UNKNOWN = -1,
+		APE		= 0,
+		ASF		= 1,
+		FLAC	= 2,
+		MP4		= 4,
+		MPC		= 5,
+		MP3		= 6,
+		OGG		= 7
+	};
 
-    static const QStringList suffixes(bool withPrefix = false);
+	enum TagKey {
+		Artist
+	};
 
-    /** Field ArtistAlbum if exists (in a compilation for example). */
-    QString artistAlbum() const;
-    void setArtistAlbum(const QString &artistAlbum);
+	FileHelper(const QMediaContent &track);
 
-    /** Extract field disc number. */
-    int discNumber() const;
-
-    /** Extract the inner picture if exists. */
-    Cover* extractCover();
-
-    bool insert(QString key, const QVariant &value);
-
-    /** Check if file has an inner picture. */
-    bool hasCover() const;
-
-    /** Convert the existing rating number into a smaller range from 1 to 5. */
-    int rating() const;
-
-    /** Sets the inner picture. */
-    void setCover(Cover *cover);
-
-    void setRating(int rating);
-
-    /// Facade
-    bool isValid() const;
-    QString title() const;
-    QString trackNumber() const;
-    QString album() const;
-    QString length() const;
-    QString artist() const;
-    QString year() const;
-    QString genre() const;
-    QString comment() const;
-    bool save();
-    inline QFileInfo fileInfo() const { return _fileInfo; }
-
-    inline TagLib::File *file() { return _file; }
+	FileHelper(const QString &filePath);
 
 private:
-    QString convertKeyToID3v2Key(QString key);
+	bool init(const QString &filePath);
 
-    QString extractFlacFeature(const QString &featureToExtract) const;
+public:
+	virtual ~FileHelper();
 
-    QString extractMp4Feature(const QString &featureToExtract) const;
+	static const QStringList suffixes(bool withPrefix = false);
 
-    QString extractMpegFeature(const QString &featureToExtract) const;
+	/** Field ArtistAlbum if exists (in a compilation for example). */
+	QString artistAlbum() const;
+	void setArtistAlbum(const QString &artistAlbum);
 
-    int ratingForID3v2(TagLib::ID3v2::Tag *tag) const;
-    void setRatingForID3v2(int rating, TagLib::ID3v2::Tag *tag);
+	/** Extract field disc number. */
+	int discNumber(bool canBeZero = false) const;
+
+	/** Extract the inner picture if exists. */
+	Cover* extractCover();
+
+	bool insert(QString key, const QVariant &value);
+
+	/** Check if file has an inner picture. */
+	bool hasCover() const;
+
+	/** Convert the existing rating number into a smaller range from 1 to 5. */
+	int rating() const;
+
+	/** Sets the inner picture. */
+	void setCover(Cover *cover);
+
+	void setRating(int rating);
+
+	/// Facade
+	bool isValid() const;
+	QString title() const;
+	QString trackNumber() const;
+	QString album() const;
+	QString length() const;
+	QString artist() const;
+	QString year() const;
+	QString genre() const;
+	QString comment() const;
+	bool save();
+	inline QFileInfo fileInfo() const { return _fileInfo; }
+
+	inline TagLib::File *file() { return _file; }
+
+private:
+	QString convertKeyToID3v2Key(QString key);
+
+	QString extractFlacFeature(const QString &featureToExtract) const;
+
+	QString extractMp4Feature(const QString &featureToExtract) const;
+
+	QString extractMpegFeature(const QString &featureToExtract) const;
+
+	int ratingForID3v2(TagLib::ID3v2::Tag *tag) const;
+	void setRatingForID3v2(int rating, TagLib::ID3v2::Tag *tag);
 };
 
 #endif // FILEHELPER_H
