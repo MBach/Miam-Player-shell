@@ -4,7 +4,6 @@
 #include <shellapi.h>
 #include <algorithm>
 #include <wchar.h>
-#include <atlbase.h>
 #include <Strsafe.h>
 #include <vector>
 

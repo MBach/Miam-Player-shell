@@ -67,30 +67,27 @@ QWidget* MiamPlayerShell::configPage()
 	_config.subMenu->raise();
 
 	Settings *settings = Settings::getInstance();
-	settings->beginGroup("MiamPlayerShell");
 
 	// Swap items from one context menu to another
 	connect(_config.radioButtonDisableSubMenu, &QCheckBox::toggled, this, &MiamPlayerShell::toggleSubMenu);
-
 	connect(_config.sendToCurrentPlaylist, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 	connect(_config.sendToNewPlaylist, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 	connect(_config.sendToTagEditor, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 	connect(_config.addToLibrary, &QCheckBox::toggled, this, &MiamPlayerShell::toggleFeature);
 
 	// Init values and trigger signal
-	if (!settings->value("hasSubMenu", true).toBool()) {
+	if (!settings->value("MiamPlayerShell/hasSubMenu", true).toBool()) {
 		_config.radioButtonDisableSubMenu->toggle();
 	}
 
 	// Hide last item
-	/*if (!settings->value("addToLibrary", 0).toInt()) {
+	/*if (!settings->value("MiamPlayerShell/addToLibrary", 0).toInt()) {
 		_config.addToLibrary->toggle();
 	}*/
 
 	foreach (QCheckBox *checkBox, _config.actionsGroupBox->findChildren<QCheckBox*>()) {
-		settings->setValue(checkBox->objectName(), checkBox->text());
+		settings->setValue("MiamPlayerShell/" + checkBox->objectName(), checkBox->text());
 	}
-	settings->endGroup();
 
 	this->resizeListWidget(_config.menu);
 	this->resizeListWidget(_config.subMenu);
