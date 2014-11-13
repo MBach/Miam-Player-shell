@@ -16,12 +16,12 @@ MiamPlayerShell::~MiamPlayerShell()
 void MiamPlayerShell::cleanUpBeforeDestroy()
 {
 	// Disable shell extension
-	Settings::getInstance()->setValue("MiamPlayerShell/IsActive", 0l);
+	Settings::instance()->setValue("MiamPlayerShell/IsActive", 0l);
 }
 
 void MiamPlayerShell::init()
 {
-	Settings *settings = Settings::getInstance();
+	Settings *settings = Settings::instance();
 	settings->beginGroup("MiamPlayerShell");
 	settings->setValue("IsActive", 1l);
 	settings->endGroup();
@@ -66,7 +66,7 @@ QWidget* MiamPlayerShell::configPage()
 	}
 	_config.subMenu->raise();
 
-	Settings *settings = Settings::getInstance();
+	Settings *settings = Settings::instance();
 
 	// Swap items from one context menu to another
 	connect(_config.radioButtonDisableSubMenu, &QCheckBox::toggled, this, &MiamPlayerShell::toggleSubMenu);
@@ -115,7 +115,7 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	int row;
 	QCheckBox *checkBox = qobject_cast<QCheckBox*>(sender());
 
-	Settings *settings = Settings::getInstance();
+	Settings *settings = Settings::instance();
 	if (settings->value("MiamPlayerShell/hasSubMenu").toBool()) {
 		list = _config.subMenu;
 		row = 0;
@@ -189,7 +189,7 @@ void MiamPlayerShell::toggleSubMenu(bool disabled)
 		}
 		_config.menu->insertItem(4, item);
 	}
-	Settings::getInstance()->setValue("MiamPlayerShell/HasSubMenu", disabled ? 0l : 1l);
+	Settings::instance()->setValue("MiamPlayerShell/HasSubMenu", disabled ? 0l : 1l);
 	this->resizeListWidget(_config.menu);
 	this->resizeListWidget(_config.subMenu);
 }

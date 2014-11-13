@@ -125,7 +125,7 @@ BOOL RegisterServer()
 	pDest[0] = 0;
 	lstrcat(szDefaultPath, TEXT("MiamPlayer.exe"));
 
-	LPWSTR miamShell = TEXT("Software\\MmeMiamMiam\\MiamPlayer\\MiamPlayerShell");
+	auto miamShell = TEXT("Software\\MmeMiamMiam\\MiamPlayer\\MiamPlayerShell");
 
 	//get this app's path and file name
 	GetModuleFileName(_hModule, szModule, MAX_PATH);
@@ -477,7 +477,9 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 		menuItemInfo.fMask = MIIM_SUBMENU | MIIM_STRING | MIIM_ID;
 		menuItemInfo.wID = uID++;
 		menuItemInfo.hSubMenu = hSubmenu;
-		menuItemInfo.dwTypeData = TEXT("Miam-Player");
+		LPWSTR s = new TCHAR[11];
+
+		menuItemInfo.dwTypeData = s;
 		InsertMenuItem(hMenu, indexMenu, TRUE, &menuItemInfo);
 	} else {
 		if (m_hasSendToCurrentPlaylist) {
