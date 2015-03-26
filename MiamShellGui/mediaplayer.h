@@ -29,6 +29,7 @@ private:
 	VlcInstance *_instance;
 	VlcMedia *_media;
 	VlcMediaPlayer *_player;
+	RemoteMediaPlayer *_remotePlayer;
 
 	QMap<QString, RemoteMediaPlayer*> _remotePlayers;
 
@@ -37,23 +38,34 @@ public:
 
 	void addRemotePlayer(RemoteMediaPlayer *remotePlayer);
 
-	QMediaPlaylist * playlist();
-	void setPlaylist(QMediaPlaylist *playlist);
+	void changeTrack(QMediaPlaylist *playlist, int trackIndex);
+
+	inline QMediaPlaylist * playlist() { return _playlist; }
+	inline void setPlaylist(QMediaPlaylist *playlist) { _playlist = playlist; }
 
 	void setVolume(int v);
 	int volume() const;
 
+	/** Current duration of the media, in ms. */
 	qint64 duration();
 
-	QMediaPlayer::State state() const;
+	/** Current position in the media, percent-based. */
+	float position() const;
+
+	inline QMediaPlayer::State state() const { return _state; }
 	void setState(QMediaPlayer::State state);
 
+	/** Set mute on or off. */
 	void setMute(bool b) const;
+
+	void setTime(int t) const;
 
 	void seek(float pos);
 
 private:
 	void createLocalConnections();
+
+	void createRemoteConnections(const QUrl &track);
 
 public slots:
 	/** Pause current playing track. */
@@ -80,12 +92,8 @@ public slots:
 	/** Activate or desactive audio output. */
 	void toggleMute() const;
 
-protected:
-	RemoteMediaPlayer * remoteMediaPlayer(const QUrl &track, bool autoConnect = true);
-
 private slots:
 	void convertMedia(libvlc_media_t *);
-	void disconnectPlayers(bool isLocal);
 
 signals:
 	void currentMediaChanged(const QString &uri);

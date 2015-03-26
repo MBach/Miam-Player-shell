@@ -4,8 +4,9 @@
 #include <QStringList>
 
 #include "miamcore_global.h"
+#include "model/trackdao.h"
 
-class LibrarySqlModel;
+class SqlDatabase;
 
 class MIAMCORE_LIBRARY SelectedTracksModel
 {
@@ -16,7 +17,7 @@ public:
 
 	virtual void updateSelectedTracks() = 0;
 
-	virtual void init(LibrarySqlModel *sqlModel) = 0;
+	virtual void init(SqlDatabase *db) = 0;
 };
 
 #endif // SELECTEDTRACKSMODEL_H

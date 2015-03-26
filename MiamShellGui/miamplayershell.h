@@ -1,7 +1,7 @@
 #ifndef MIAMPLAYERSHELL_H
 #define MIAMPLAYERSHELL_H
 
-#include "mediaplayerplugin.h"
+#include "interfaces/mediaplayerplugin.h"
 #include "miamcore_global.h"
 #include "mediaplayer.h"
 #include "listwidget.h"
@@ -35,17 +35,20 @@ public:
 
 	virtual QWidget* configPage();
 
+	inline virtual QStringList extensions() const { return QStringList(); }
+
 	virtual void init();
 
 	inline virtual bool isConfigurable() const { return true; }
 
 	inline virtual QString name() const { return "MiamPlayerShell"; }
 
-	inline virtual QString version() const { return "0.1"; }
+	inline virtual QString version() const { return "0.2"; }
 
 	inline virtual QWidget* providesView() { return NULL; }
 
 	void setMediaPlayer(QWeakPointer<MediaPlayer>);
+
 
 private:
 	/** Adjust height of fake Context Menu. */

@@ -29,11 +29,12 @@ class MIAMCORE_LIBRARY FileHelper
 private:
 	TagLib::File *_file;
 
-	int fileType;
+	int _fileType;
 
 	QFileInfo _fileInfo;
 
 	Q_ENUMS(extension)
+	Q_ENUMS(ExtensionType)
 
 public:
 	enum extension {
@@ -45,6 +46,12 @@ public:
 		MPC		= 5,
 		MP3		= 6,
 		OGG		= 7
+	};
+
+	enum ExtensionType {
+		Standard		= 0x1,
+		GameMusicEmu	= 0x2,
+		All				= Standard | GameMusicEmu
 	};
 
 	enum TagKey {
@@ -61,7 +68,7 @@ private:
 public:
 	virtual ~FileHelper();
 
-	static const QStringList suffixes(bool withPrefix = false);
+	static const QStringList suffixes(ExtensionType et = Standard, bool withPrefix = false);
 
 	/** Field ArtistAlbum if exists (in a compilation for example). */
 	QString artistAlbum() const;
@@ -84,6 +91,10 @@ public:
 	/** Sets the inner picture. */
 	void setCover(Cover *cover);
 
+	/** Set or remove any disc number. */
+	void setDiscNumber(const QString &disc);
+
+	/** Set or remove any rating. */
 	void setRating(int rating);
 
 	/// Facade
@@ -105,10 +116,9 @@ private:
 	QString convertKeyToID3v2Key(QString key);
 
 	QString extractFlacFeature(const QString &featureToExtract) const;
-
-	QString extractMp4Feature(const QString &featureToExtract) const;
-
+	QString extractGenericFeature(const QString &featureToExtract) const;
 	QString extractMpegFeature(const QString &featureToExtract) const;
+	QString extractVorbisFeature(const QString &featureToExtract) const;
 
 	int ratingForID3v2(TagLib::ID3v2::Tag *tag) const;
 	void setRatingForID3v2(int rating, TagLib::ID3v2::Tag *tag);

@@ -43,9 +43,6 @@ struct DOREGSTRUCT {
 	LPCTSTR	szData;
 };
 
-//---------------------------------------------------------------------------
-// DllMain
-//---------------------------------------------------------------------------
 int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 {
 	if (dwReason == DLL_PROCESS_ATTACH) {
@@ -54,17 +51,11 @@ int APIENTRY DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 	return TRUE;
 }
 
-//---------------------------------------------------------------------------
-// DllCanUnloadNow
-//---------------------------------------------------------------------------
 STDAPI DllCanUnloadNow(void)
 {
 	return (_cRef == 0 ? S_OK : S_FALSE);
 }
 
-//---------------------------------------------------------------------------
-// DllGetClassObject
-//---------------------------------------------------------------------------
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppvOut)
 {
 	*ppvOut = NULL;
@@ -75,24 +66,16 @@ STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppvOut)
 	return CLASS_E_CLASSNOTAVAILABLE;
 }
 
-//---------------------------------------------------------------------------
-// DllRegisterServer
-//---------------------------------------------------------------------------
 STDAPI DllRegisterServer(void)
 {
 	return (RegisterServer() ? S_OK : E_FAIL);
 }
 
-//---------------------------------------------------------------------------
-// DllUnregisterServer
-//---------------------------------------------------------------------------
+
 STDAPI DllUnregisterServer(void)
 {
 	return (UnregisterServer() ? S_OK : E_FAIL);
 }
-
-// Replace code with MFC classes?
-// #include <atlbase.h>
 
 STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/)
 {
@@ -103,10 +86,10 @@ STDAPI DllInstall(BOOL bInstall, LPCWSTR /*pszCmdLine*/)
 	}
 }
 
-//---------------------------------------------------------------------------
-// RegisterServer
-// Create registry entries and setup the shell extension
-//---------------------------------------------------------------------------
+/**
+ * \brief RegisterServer: Create registry entries and setup the shell extension
+ * \return True if OK
+ */
 BOOL RegisterServer()
 {
 	DWORD    isActive = TRUE;
@@ -131,9 +114,9 @@ BOOL RegisterServer()
 	GetModuleFileName(_hModule, szModule, MAX_PATH);
 
 	static DOREGSTRUCT ClsidEntries[] = {
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s"),									NULL,					REG_SZ,		TEXT("MiamPlayerShell")},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),					NULL,					REG_SZ,		szModule},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),					TEXT("ThreadingModel"),	REG_SZ,		TEXT("Apartment")},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s"),					NULL,					REG_SZ,	TEXT("MiamPlayerShell")},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),	NULL,					REG_SZ,	szModule},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),	TEXT("ThreadingModel"),	REG_SZ,	TEXT("Apartment")},
 
 		//Settings
 		// Context menu
@@ -153,7 +136,6 @@ BOOL RegisterServer()
 		//Registration
 		// Context menu
 		{HKEY_CLASSES_ROOT,	szShellExtensionKey, NULL, REG_SZ, szGUID},
-
 		{NULL, NULL, NULL, REG_SZ, NULL}
 	};
 
@@ -183,9 +165,6 @@ BOOL RegisterServer()
 	return TRUE;
 }
 
-//---------------------------------------------------------------------------
-// UnregisterServer
-//---------------------------------------------------------------------------
 BOOL UnregisterServer()
 {
 	TCHAR szKeyTemp[MAX_PATH + GUID_STRING_SIZE];
@@ -207,15 +186,11 @@ BOOL UnregisterServer()
 	return TRUE;
 }
 
-//---------------------------------------------------------------------------
-// MsgBoxError
-//---------------------------------------------------------------------------
 void MsgBoxError(LPCTSTR lpszMsg)
 {
 	MessageBox(NULL, lpszMsg, TEXT("MiamPlayer Extension: Error"), MB_OK | MB_ICONWARNING);
 }
 
-// --- CShellExtClassFactory ---
 CShellExtClassFactory::CShellExtClassFactory() :
 	m_cRef(0L)
 {
@@ -227,7 +202,7 @@ CShellExtClassFactory::~CShellExtClassFactory()
 	_cRef--;
 }
 
-// *** IUnknown methods ***
+/** IUnknown methods */
 STDMETHODIMP CShellExtClassFactory::QueryInterface(REFIID riid, LPVOID FAR *ppv)
 {
 	*ppv = NULL;
@@ -252,7 +227,7 @@ STDMETHODIMP_(ULONG) CShellExtClassFactory::Release()
 	return 0L;
 }
 
-// *** IClassFactory methods ***
+/** IClassFactory methods */
 STDMETHODIMP CShellExtClassFactory::CreateInstance(LPUNKNOWN pUnkOuter, REFIID riid, LPVOID *ppvObj)
 {
 	*ppvObj = NULL;
@@ -269,7 +244,6 @@ STDMETHODIMP CShellExtClassFactory::LockServer(BOOL /*fLock*/)
 	return NOERROR;
 }
 
-// --- CShellExt ---
 CShellExt::CShellExt() :
 	m_cRef(0L),
 	m_cbFiles(0),
@@ -374,7 +348,7 @@ CShellExt::~CShellExt()
 	_cRef--;
 }
 
-// *** IUnknown methods ***
+/** IUnknown methods */
 STDMETHODIMP CShellExt::QueryInterface(REFIID riid, LPVOID FAR *ppv)
 {
 	*ppv = NULL;
@@ -414,7 +388,7 @@ STDMETHODIMP_(ULONG) CShellExt::Release()
 	return 0L;
 }
 
-// *** IShellExtInit methods ***
+/** IShellExtInit methods */
 STDMETHODIMP CShellExt::Initialize(LPCITEMIDLIST /*pIDFolder*/, LPDATAOBJECT pDataObj, HKEY /*hRegKey*/)
 {
 	if (m_pDataObj) {
@@ -428,7 +402,7 @@ STDMETHODIMP CShellExt::Initialize(LPCITEMIDLIST /*pIDFolder*/, LPDATAOBJECT pDa
 	return NOERROR;
 }
 
-// *** IContextMenu methods ***
+/** IContextMenu methods */
 STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmdFirst, UINT /*idCmdLast*/, UINT /*uFlags*/)
 {
 	// Context menu can be disabled with standard account if DLL has been registered with Admin rights after install /o/
@@ -456,6 +430,8 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 
 	if (m_hasSubMenu) {
 		HMENU hSubmenu = CreatePopupMenu();
+		MENUITEMINFO menuItemInfo;
+		ZeroMemory(&menuItemInfo, sizeof(menuItemInfo));
 		int i = 0;
 		if (m_hasSendToCurrentPlaylist) {
 			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID, m_szMenuSendToCurrentPlaylist);
@@ -473,13 +449,15 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 			InsertMenu(hSubmenu, i++, MF_STRING|MF_BYPOSITION, uID, m_szMenuAddToLibrary);
 		}
 		uID++;
-		MENUITEMINFO menuItemInfo = { sizeof(MENUITEMINFO) };
+		menuItemInfo.fType = MFT_STRING;
 		menuItemInfo.fMask = MIIM_SUBMENU | MIIM_STRING | MIIM_ID;
-		menuItemInfo.wID = uID++;
+		menuItemInfo.wID = uID;
 		menuItemInfo.hSubMenu = hSubmenu;
-		LPWSTR s = new TCHAR[11];
 
-		menuItemInfo.dwTypeData = s;
+		wchar_t m[] = L"Miam-Player";
+		// menuItemInfo.cch = 12;
+		// wcscpy_s(menuItemInfo.dwTypeData, sizeof(m), m);
+		menuItemInfo.dwTypeData = m;
 		InsertMenuItem(hMenu, indexMenu, TRUE, &menuItemInfo);
 	} else {
 		if (m_hasSendToCurrentPlaylist) {
@@ -943,10 +921,6 @@ STDMETHODIMP CShellExt::LoadShellIcon(int cx, int cy, HICON * phicon)
 {
 	HRESULT hr = E_OUTOFMEMORY;
 	HICON hicon = NULL;
-
-	//if (m_useCustom) {
-	//	hicon = (HICON)LoadImage(NULL, m_szCustomPath, IMAGE_ICON, cx, cy, LR_DEFAULTCOLOR|LR_LOADFROMFILE);
-	//}
 
 	//Either no custom defined, or failed and use fallback
 	if (hicon == NULL) {
