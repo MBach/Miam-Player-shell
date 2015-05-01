@@ -24,7 +24,7 @@ class MIAMCORE_LIBRARY MiamPlayerShell : public QWidget, public MediaPlayerPlugi
 
 private:
 	Ui::MiamPlayerShellConfigPage _config;
-	QWeakPointer<MediaPlayer> _mediaPlayer;
+	MediaPlayer *_mediaPlayer;
 
 public:
 	MiamPlayerShell();
@@ -47,8 +47,7 @@ public:
 
 	inline virtual QWidget* providesView() { return NULL; }
 
-	void setMediaPlayer(QWeakPointer<MediaPlayer>);
-
+	virtual void setMediaPlayer(MediaPlayer *) override;
 
 private:
 	/** Adjust height of fake Context Menu. */

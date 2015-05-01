@@ -85,7 +85,7 @@ QWidget* MiamPlayerShell::configPage()
 		_config.addToLibrary->toggle();
 	}*/
 
-	foreach (QCheckBox *checkBox, _config.actionsGroupBox->findChildren<QCheckBox*>()) {
+	for (QCheckBox *checkBox : _config.actionsGroupBox->findChildren<QCheckBox*>()) {
 		settings->setValue("MiamPlayerShell/" + checkBox->objectName(), checkBox->text());
 	}
 
@@ -152,7 +152,7 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 	QList<QCheckBox*> checkedOnes;
 	QList<QCheckBox*> checkBoxes = QList<QCheckBox*>() << _config.sendToCurrentPlaylist << _config.sendToNewPlaylist
 													   << _config.sendToTagEditor << _config.addToLibrary;
-	foreach (QCheckBox *checkBox, checkBoxes) {
+	for (QCheckBox *checkBox : checkBoxes) {
 		if (checkBox->isChecked()) {
 			checkedOnes << checkBox;
 		}
@@ -162,7 +162,7 @@ void MiamPlayerShell::toggleFeature(bool enabled)
 		checkedOnes.first()->setEnabled(false);
 	} else if (checkedOnes.size() > 1) {
 		// Reset protected status
-		foreach (QCheckBox *checkBox, checkBoxes) {
+		for (QCheckBox *checkBox : checkBoxes) {
 			checkBox->setEnabled(true);
 		}
 	}
@@ -194,7 +194,7 @@ void MiamPlayerShell::toggleSubMenu(bool disabled)
 	this->resizeListWidget(_config.subMenu);
 }
 
-void MiamPlayerShell::setMediaPlayer(QWeakPointer<MediaPlayer> mediaPlayer)
+void MiamPlayerShell::setMediaPlayer(MediaPlayer *mediaPlayer)
 {
 	_mediaPlayer = mediaPlayer;
 }

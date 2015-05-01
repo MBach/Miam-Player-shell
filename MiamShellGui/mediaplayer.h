@@ -2,7 +2,7 @@
 #define MEDIAPLAYER_H
 
 #include <QMediaPlayer>
-#include <QMediaPlaylist>
+#include "mediaplaylist.h"
 
 #include "miamcore_global.h"
 
@@ -23,7 +23,7 @@ class MIAMCORE_LIBRARY MediaPlayer : public QObject
 {
 	Q_OBJECT
 private:
-	QMediaPlaylist *_playlist;
+	MediaPlaylist *_playlist;
 	QMediaPlayer::State _state;
 
 	VlcInstance *_instance;
@@ -32,40 +32,55 @@ private:
 	RemoteMediaPlayer *_remotePlayer;
 
 	QMap<QString, RemoteMediaPlayer*> _remotePlayers;
+	bool _stopAfterCurrent;
 
-public:
+	/** The unique instance of this class. */
+	static MediaPlayer *_mediaPlayer;
+
 	explicit MediaPlayer(QObject *parent = 0);
+public:
+	static MediaPlayer *instance();
 
 	void addRemotePlayer(RemoteMediaPlayer *remotePlayer);
 
-	void changeTrack(QMediaPlaylist *playlist, int trackIndex);
+	void changeTrack(const QMediaContent &mediaContent);
 
-	inline QMediaPlaylist * playlist() { return _playlist; }
-	inline void setPlaylist(QMediaPlaylist *playlist) { _playlist = playlist; }
+	void changeTrack(MediaPlaylist *playlist, int trackIndex);
 
-	void setVolume(int v);
-	int volume() const;
+	inline bool isStopAfterCurrent() const { return _stopAfterCurrent; }
 
-	/** Current duration of the media, in ms. */
-	qint64 duration();
+	inline MediaPlaylist * playlist() { return _playlist; }
 
-	/** Current position in the media, percent-based. */
-	float position() const;
-
-	inline QMediaPlayer::State state() const { return _state; }
-	void setState(QMediaPlayer::State state);
+	void seek(float pos);
 
 	/** Set mute on or off. */
 	void setMute(bool b) const;
 
-	void setTime(int t) const;
+	inline void setPlaylist(MediaPlaylist *playlist) { _playlist = playlist; }
 
-	void seek(float pos);
+	void setState(QMediaPlayer::State state);
+
+	void setTime(qint64 t) const;
+
+	void setVolume(int v);
+
+	inline QMediaPlayer::State state() const { return _state; }
+
+	qint64 time() const;
 
 private:
 	void createLocalConnections();
 
 	void createRemoteConnections(const QUrl &track);
+
+	/** Current duration of the media, in ms. */
+	qint64 duration();
+
+	/** Play track directly in the player, without playlist. */
+	void playMediaContent(const QMediaContent &mc);
+
+	/** Current position in the media, percent-based. */
+	float position() const;
 
 public slots:
 	/** Pause current playing track. */
@@ -88,6 +103,8 @@ public slots:
 
 	/** Stop current track in the playlist. */
 	void stop();
+
+	inline void stopAfterCurrent(bool b) { _stopAfterCurrent = b; }
 
 	/** Activate or desactive audio output. */
 	void toggleMute() const;

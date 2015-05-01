@@ -24,6 +24,7 @@ INSTALLS += target
 HEADERS += basicplugin.h \
     filehelper.h \
     listwidget.h \
+    mediaplaylist.h \
     mediaplayer.h \
     mediaplayerplugin.h \
     miamcore_global.h \

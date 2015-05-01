@@ -11,7 +11,7 @@ public:
 
 	virtual QWidget* providesView() = 0;
 
-	virtual void setMediaPlayer(QWeakPointer<MediaPlayer>) = 0;
+	virtual void setMediaPlayer(MediaPlayer *) = 0;
 
 	virtual QStringList extensions() const = 0;
 };
