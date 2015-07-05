@@ -2,23 +2,23 @@
 
 #include "Bitmap.h"
 
-HMODULE hUxTheme = NULL;
-FN_GetBufferedPaintBits pfnGetBufferedPaintBits = NULL;
-FN_BeginBufferedPaint pfnBeginBufferedPaint = NULL;
-FN_EndBufferedPaint pfnEndBufferedPaint = NULL;
+HMODULE hUxTheme = nullptr;
+FN_GetBufferedPaintBits pfnGetBufferedPaintBits = nullptr;
+FN_BeginBufferedPaint pfnBeginBufferedPaint = nullptr;
+FN_EndBufferedPaint pfnEndBufferedPaint = nullptr;
 
 bool InitTheming()
 {
 	hUxTheme = ::LoadLibrary(TEXT("UxTheme.dll"));
-	if (hUxTheme == NULL)
+	if (hUxTheme == nullptr)
 		return false;
 	pfnGetBufferedPaintBits = (FN_GetBufferedPaintBits)::GetProcAddress(hUxTheme, "GetBufferedPaintBits");
 	pfnBeginBufferedPaint = (FN_BeginBufferedPaint)::GetProcAddress(hUxTheme, "BeginBufferedPaint");
 	pfnEndBufferedPaint = (FN_EndBufferedPaint)::GetProcAddress(hUxTheme, "EndBufferedPaint");
-	if ((pfnGetBufferedPaintBits == NULL) || (pfnBeginBufferedPaint == NULL) || (pfnEndBufferedPaint == NULL)) {
-		pfnGetBufferedPaintBits = NULL;
-		pfnBeginBufferedPaint = NULL;
-		pfnEndBufferedPaint = NULL;
+	if ((pfnGetBufferedPaintBits == nullptr) || (pfnBeginBufferedPaint == nullptr) || (pfnEndBufferedPaint == nullptr)) {
+		pfnGetBufferedPaintBits = nullptr;
+		pfnBeginBufferedPaint = nullptr;
+		pfnEndBufferedPaint = nullptr;
 		return false;
 	}
 
@@ -27,11 +27,11 @@ bool InitTheming()
 
 bool DeinitTheming()
 {
-	pfnGetBufferedPaintBits = NULL;
-	pfnBeginBufferedPaint = NULL;
-	pfnEndBufferedPaint = NULL;
+	pfnGetBufferedPaintBits = nullptr;
+	pfnBeginBufferedPaint = nullptr;
+	pfnEndBufferedPaint = nullptr;
 	FreeLibrary(hUxTheme);
-	hUxTheme = NULL;
+	hUxTheme = nullptr;
 
 	return true;
 }
@@ -50,19 +50,19 @@ void InitBitmapInfo(BITMAPINFO *pbmi, ULONG cbInfo, LONG cx, LONG cy, WORD bpp)
 
 HRESULT Create32BitHBITMAP(HDC hdc, const SIZE *psize, void **ppvBits, HBITMAP* phBmp)
 {
-	*phBmp = NULL;
+	*phBmp = nullptr;
 
 	BITMAPINFO bmi;
 	InitBitmapInfo(&bmi, sizeof(bmi), psize->cx, psize->cy, 32);
 
-	HDC hdcUsed = hdc ? hdc : GetDC(NULL);
+	HDC hdcUsed = hdc ? hdc : GetDC(nullptr);
 	if (hdcUsed) {
-		*phBmp = CreateDIBSection(hdcUsed, &bmi, DIB_RGB_COLORS, ppvBits, NULL, 0);
+		*phBmp = CreateDIBSection(hdcUsed, &bmi, DIB_RGB_COLORS, ppvBits, nullptr, 0);
 		if (hdc != hdcUsed) {
-			ReleaseDC(NULL, hdcUsed);
+			ReleaseDC(nullptr, hdcUsed);
 		}
 	}
-	return (NULL == *phBmp) ? E_OUTOFMEMORY : S_OK;
+	return (nullptr == *phBmp) ? E_OUTOFMEMORY : S_OK;
 }
 
 HRESULT ConvertToPARGB32(HDC hdc, ARGB *pargb, HBITMAP hbmp, SIZE& sizImage, int cxRow)
@@ -136,10 +136,10 @@ HRESULT ConvertBufferToPARGB32(HPAINTBUFFER hPaintBuffer, HDC hdc, HICON hicon, 
 HBITMAP IconToBitmapPARGB32(HICON hIcon, DWORD cx, DWORD cy)
 {
 	HRESULT hr = E_OUTOFMEMORY;
-	HBITMAP hBmp = NULL;
+	HBITMAP hBmp = nullptr;
 
 	if (!hIcon)
-		return NULL;
+		return nullptr;
 
 	SIZE sizIcon;
 	sizIcon.cx = cx;
@@ -148,9 +148,9 @@ HBITMAP IconToBitmapPARGB32(HICON hIcon, DWORD cx, DWORD cy)
 	RECT rcIcon;
 	SetRect(&rcIcon, 0, 0, sizIcon.cx, sizIcon.cy);
 
-	HDC hdcDest = CreateCompatibleDC(NULL);
+	HDC hdcDest = CreateCompatibleDC(nullptr);
 	if (hdcDest) {
-		hr = Create32BitHBITMAP(hdcDest, &sizIcon, NULL, &hBmp);
+		hr = Create32BitHBITMAP(hdcDest, &sizIcon, nullptr, &hBmp);
 		if (SUCCEEDED(hr)) {
 			hr = E_FAIL;
 
@@ -165,7 +165,7 @@ HBITMAP IconToBitmapPARGB32(HICON hIcon, DWORD cx, DWORD cy)
 				HDC hdcBuffer;
 				HPAINTBUFFER hPaintBuffer = pfnBeginBufferedPaint(hdcDest, &rcIcon, BPBF_DIB, &paintParams, &hdcBuffer);
 				if(hPaintBuffer) {
-					if(DrawIconEx(hdcBuffer, 0, 0, hIcon, sizIcon.cx, sizIcon.cy, 0, NULL, DI_NORMAL)) {
+					if(DrawIconEx(hdcBuffer, 0, 0, hIcon, sizIcon.cx, sizIcon.cy, 0, nullptr, DI_NORMAL)) {
 						// If icon did not have an alpha channel, we need to convert buffer to PARGB.
 						hr = ConvertBufferToPARGB32(hPaintBuffer, hdcDest, hIcon, sizIcon);
 					}
@@ -184,5 +184,5 @@ HBITMAP IconToBitmapPARGB32(HICON hIcon, DWORD cx, DWORD cy)
 		return hBmp;
 	}
 	DeleteObject(hBmp);
-	return NULL;
+	return nullptr;
 }

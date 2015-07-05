@@ -7,7 +7,7 @@
 #include <QtDebug>
 
 MiamPlayerShell::MiamPlayerShell()
-	: QWidget(NULL)
+	: QWidget(nullptr)
 {}
 
 MiamPlayerShell::~MiamPlayerShell()

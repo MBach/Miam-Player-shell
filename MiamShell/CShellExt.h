@@ -121,7 +121,7 @@ public:
 	STDMETHODIMP QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmdFirst, UINT idCmdLast, UINT uFlags);
 	STDMETHODIMP InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi);
 	STDMETHODIMP GetCommandString(UINT_PTR idCmd, UINT uFlags, UINT FAR *reserved, LPSTR pszName, UINT cchMax);
-	STDMETHODIMP HandleMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) { return HandleMenuMsg2(uMsg, wParam, lParam, NULL); }
+	STDMETHODIMP HandleMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) { return HandleMenuMsg2(uMsg, wParam, lParam, nullptr); }
 	STDMETHODIMP HandleMenuMsg2(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT *plResult);
 
 	// *** IPersistFile methods ***

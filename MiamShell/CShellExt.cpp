@@ -15,7 +15,7 @@
 //  Global variables
 //---------------------------------------------------------------------------
 UINT _cRef = 0; // COM Reference count.
-HINSTANCE _hModule = NULL; // DLL Module.
+HINSTANCE _hModule = nullptr; // DLL Module.
 
 TCHAR szShellExtensionKey[] = TEXT("*\\shellex\\ContextMenuHandlers\\MiamPlayerShell");
 
@@ -58,7 +58,7 @@ STDAPI DllCanUnloadNow(void)
 
 STDAPI DllGetClassObject(REFCLSID rclsid, REFIID riid, LPVOID *ppvOut)
 {
-	*ppvOut = NULL;
+	*ppvOut = nullptr;
 	if (IsEqualIID(rclsid, CLSID_ShellExtension)) {
 		CShellExtClassFactory *pcf = new CShellExtClassFactory;
 		return pcf->QueryInterface(riid, ppvOut);
@@ -103,7 +103,7 @@ BOOL RegisterServer()
 	TCHAR    szDefaultPath[MAX_PATH];
 
 	GetModuleFileName(_hModule, szDefaultPath, MAX_PATH);
-	TCHAR* pDest = StrRChr(szDefaultPath, NULL, TEXT('\\'));
+	TCHAR* pDest = StrRChr(szDefaultPath, nullptr, TEXT('\\'));
 	pDest++;
 	pDest[0] = 0;
 	lstrcat(szDefaultPath, TEXT("MiamPlayer.exe"));
@@ -114,8 +114,8 @@ BOOL RegisterServer()
 	GetModuleFileName(_hModule, szModule, MAX_PATH);
 
 	static DOREGSTRUCT ClsidEntries[] = {
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s"),					NULL,					REG_SZ,	TEXT("MiamPlayerShell")},
-		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),	NULL,					REG_SZ,	szModule},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s"),					nullptr,					REG_SZ,	TEXT("MiamPlayerShell")},
+		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),	nullptr,					REG_SZ,	szModule},
 		{HKEY_CLASSES_ROOT,	TEXT("CLSID\\%s\\InprocServer32"),	TEXT("ThreadingModel"),	REG_SZ,	TEXT("Apartment")},
 
 		//Settings
@@ -135,8 +135,8 @@ BOOL RegisterServer()
 
 		//Registration
 		// Context menu
-		{HKEY_CLASSES_ROOT,	szShellExtensionKey, NULL, REG_SZ, szGUID},
-		{NULL, NULL, NULL, REG_SZ, NULL}
+		{HKEY_CLASSES_ROOT,	szShellExtensionKey, nullptr, REG_SZ, szGUID},
+		{nullptr, nullptr, nullptr, REG_SZ, nullptr}
 	};
 
 	// First clear any old entries
@@ -147,7 +147,7 @@ BOOL RegisterServer()
 		wsprintf(szSubKey, ClsidEntries[i].szSubKey, szGUID);
 		HKEY hKey;
 		DWORD dwDisp;
-		LRESULT lResult = RegCreateKeyEx(ClsidEntries[i].hRootKey, szSubKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKey, &dwDisp);
+		LRESULT lResult = RegCreateKeyEx(ClsidEntries[i].hRootKey, szSubKey, 0, nullptr, REG_OPTION_NON_VOLATILE, KEY_WRITE, nullptr, &hKey, &dwDisp);
 		if (NOERROR == lResult) {
 			TCHAR szData[MAX_PATH];
 			// If necessary, create the value string
@@ -188,7 +188,7 @@ BOOL UnregisterServer()
 
 void MsgBoxError(LPCTSTR lpszMsg)
 {
-	MessageBox(NULL, lpszMsg, TEXT("MiamPlayer Extension: Error"), MB_OK | MB_ICONWARNING);
+	MessageBox(nullptr, lpszMsg, TEXT("MiamPlayer Extension: Error"), MB_OK | MB_ICONWARNING);
 }
 
 CShellExtClassFactory::CShellExtClassFactory() :
@@ -205,7 +205,7 @@ CShellExtClassFactory::~CShellExtClassFactory()
 /** IUnknown methods */
 STDMETHODIMP CShellExtClassFactory::QueryInterface(REFIID riid, LPVOID FAR *ppv)
 {
-	*ppv = NULL;
+	*ppv = nullptr;
 	if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IClassFactory)) {
 		*ppv = (LPCLASSFACTORY)this;
 		AddRef();
@@ -230,7 +230,7 @@ STDMETHODIMP_(ULONG) CShellExtClassFactory::Release()
 /** IClassFactory methods */
 STDMETHODIMP CShellExtClassFactory::CreateInstance(LPUNKNOWN pUnkOuter, REFIID riid, LPVOID *ppvObj)
 {
-	*ppvObj = NULL;
+	*ppvObj = nullptr;
 	if (pUnkOuter)
 		return CLASS_E_NOAGGREGATION;
 	CShellExt *pShellExt = new CShellExt();
@@ -247,9 +247,9 @@ STDMETHODIMP CShellExtClassFactory::LockServer(BOOL /*fLock*/)
 CShellExt::CShellExt() :
 	m_cRef(0L),
 	m_cbFiles(0),
-	m_pDataObj(NULL),
+	m_pDataObj(nullptr),
 	m_menuID(0),
-	m_hMenu(NULL),
+	m_hMenu(nullptr),
 	m_isActive(true),
 	m_hasSubMenu(true),
 	m_hasSendToCurrentPlaylist(true),
@@ -278,59 +278,59 @@ CShellExt::CShellExt() :
 	result = RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\MmeMiamMiam\\MiamPlayer\\MiamPlayerShell"), 0, KEY_READ, &settingKey);
 	if (result == ERROR_SUCCESS) {
 		size = sizeof(TCHAR)*TITLE_SIZE;
-		result = RegQueryValueEx(settingKey, TEXT("sendToCurrentPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToCurrentPlaylist), &size);
+		result = RegQueryValueEx(settingKey, TEXT("sendToCurrentPlaylist"), nullptr, nullptr, (LPBYTE)(m_szMenuSendToCurrentPlaylist), &size);
 		if (result != ERROR_SUCCESS) {
 			StringCchCopy(m_szMenuSendToCurrentPlaylist, TITLE_SIZE, TEXT("Send to current Playlist"));
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("sendToNewPlaylist"), NULL, NULL, (LPBYTE)(m_szMenuSendToNewPlaylist), &size);
+		result = RegQueryValueEx(settingKey, TEXT("sendToNewPlaylist"), nullptr, nullptr, (LPBYTE)(m_szMenuSendToNewPlaylist), &size);
 		if (result != ERROR_SUCCESS) {
 			StringCchCopy(m_szMenuSendToNewPlaylist, TITLE_SIZE, TEXT("Send to new Playlist"));
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("sendToTagEditor"), NULL, NULL, (LPBYTE)(m_szMenuSendToTagEditor), &size);
+		result = RegQueryValueEx(settingKey, TEXT("sendToTagEditor"), nullptr, nullptr, (LPBYTE)(m_szMenuSendToTagEditor), &size);
 		if (result != ERROR_SUCCESS) {
 			StringCchCopy(m_szMenuSendToTagEditor, TITLE_SIZE, TEXT("Send to Tag Editor"));
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("addToLibrary"), NULL, NULL, (LPBYTE)(m_szMenuAddToLibrary), &size);
+		result = RegQueryValueEx(settingKey, TEXT("addToLibrary"), nullptr, nullptr, (LPBYTE)(m_szMenuAddToLibrary), &size);
 		if (result != ERROR_SUCCESS) {
 			StringCchCopy(m_szMenuAddToLibrary, TITLE_SIZE, TEXT("Add to Library"));
 		}
 
 		size = sizeof(DWORD);
-		result = RegQueryValueEx(settingKey, TEXT("Maxtext"), NULL, NULL, (BYTE*)(&siz), &size);
+		result = RegQueryValueEx(settingKey, TEXT("Maxtext"), nullptr, nullptr, (BYTE*)(&siz), &size);
 		if (result == ERROR_SUCCESS) {
 			m_nameMaxLength = std::max((DWORD)0, siz);
 		}
 
 		BOOL hasItemInContextMenu = TRUE;
-		result = RegQueryValueEx(settingKey, TEXT("IsActive"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
+		result = RegQueryValueEx(settingKey, TEXT("IsActive"), nullptr, nullptr, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
 			m_isActive = (hasItemInContextMenu != 0);
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSubMenu"), nullptr, nullptr, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
 			m_hasSubMenu = (hasItemInContextMenu != 0);
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("HasSendToCurrentPlaylist"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToCurrentPlaylist"), nullptr, nullptr, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
 			m_hasSendToCurrentPlaylist = (hasItemInContextMenu != 0);
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("HasSendToNewPlaylist"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToNewPlaylist"), nullptr, nullptr, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
 			m_hasSendToNewPlaylist = (hasItemInContextMenu != 0);
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("HasSendToTagEditor"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasSendToTagEditor"), nullptr, nullptr, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
 			m_hasSendToTagEditor = (hasItemInContextMenu != 0);
 		}
 
-		result = RegQueryValueEx(settingKey, TEXT("HasAddToLibrary"), NULL, NULL, (BYTE*)(&hasItemInContextMenu), &size);
+		result = RegQueryValueEx(settingKey, TEXT("HasAddToLibrary"), nullptr, nullptr, (BYTE*)(&hasItemInContextMenu), &size);
 		if (result == ERROR_SUCCESS) {
 			m_hasAddToLibrary = (hasItemInContextMenu != 0);
 		}
@@ -351,7 +351,7 @@ CShellExt::~CShellExt()
 /** IUnknown methods */
 STDMETHODIMP CShellExt::QueryInterface(REFIID riid, LPVOID FAR *ppv)
 {
-	*ppv = NULL;
+	*ppv = nullptr;
 	if (IsEqualIID(riid, IID_IUnknown)) {
 		*ppv = (LPSHELLEXTINIT)this;
 	} else if (IsEqualIID(riid, IID_IShellExtInit)) {
@@ -393,7 +393,7 @@ STDMETHODIMP CShellExt::Initialize(LPCITEMIDLIST /*pIDFolder*/, LPDATAOBJECT pDa
 {
 	if (m_pDataObj) {
 		m_pDataObj->Release();
-		m_pDataObj = NULL;
+		m_pDataObj = nullptr;
 	}
 	if (pDataObj) {
 		m_pDataObj = pDataObj;
@@ -412,7 +412,7 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 
 	FORMATETC fmte = {
 		CF_HDROP,
-		(DVTARGETDEVICE FAR *)NULL,
+		(DVTARGETDEVICE FAR *)nullptr,
 		DVASPECT_CONTENT,
 		-1,
 		TYMED_HGLOBAL
@@ -479,7 +479,7 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 	}
 
 	if (m_hasSubMenu) {
-		HBITMAP icon = NULL;
+		HBITMAP icon = nullptr;
 		HICON hicon;
 		DWORD menuIconWidth = GetSystemMetrics(SM_CXMENUCHECK);
 		DWORD menuIconHeight = GetSystemMetrics(SM_CYMENUCHECK);
@@ -489,7 +489,7 @@ STDMETHODIMP CShellExt::QueryContextMenu(HMENU hMenu, UINT indexMenu, UINT idCmd
 			DestroyIcon(hicon);
 		}
 
-		if (icon != NULL) {
+		if (icon != nullptr) {
 			MENUITEMINFO mii;
 			ZeroMemory(&mii, sizeof(mii));
 			mii.cbSize = sizeof(mii);
@@ -566,7 +566,7 @@ STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 	case WM_MEASUREITEM: {	//for owner drawn menu
 		MEASUREITEMSTRUCT * lpdis = (MEASUREITEMSTRUCT*) lParam;
 
-		if (lpdis == NULL)// || lpdis->itemID != m_menuID)
+		if (lpdis == nullptr)// || lpdis->itemID != m_menuID)
 			break;
 		lpdis->itemWidth = 0;	//0 seems to work for 98 and up
 		if (lpdis->itemHeight < menuIconHeight)
@@ -578,14 +578,14 @@ STDMETHODIMP CShellExt::HandleMenuMsg2(UINT uMsg, WPARAM /*wParam*/, LPARAM lPar
 	case WM_DRAWITEM: {		//for owner drawn menu
 		//Assumes proper font already been set
 		DRAWITEMSTRUCT * lpdis = (DRAWITEMSTRUCT*) lParam;
-		if ((lpdis == NULL) || (lpdis->CtlType != ODT_MENU))
+		if ((lpdis == nullptr) || (lpdis->CtlType != ODT_MENU))
 			break;
-		HICON miamPlayerIcon = NULL;
+		HICON miamPlayerIcon = nullptr;
 
 		HRESULT hr = LoadShellIcon(menuIconWidth, menuIconHeight, &miamPlayerIcon);
 
 		if (SUCCEEDED(hr)) {
-			DrawIconEx(lpdis->hDC, menuIconPadding, menuIconPadding, miamPlayerIcon, menuIconWidth, menuIconHeight, 0, NULL, DI_NORMAL);
+			DrawIconEx(lpdis->hDC, menuIconPadding, menuIconPadding, miamPlayerIcon, menuIconWidth, menuIconHeight, 0, nullptr, DI_NORMAL);
 			DestroyIcon(miamPlayerIcon);
 		}
 		if (plResult)
@@ -673,7 +673,7 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 	if (!res)
 		return S_OK;
 	else
-		*phiconLarge = NULL;
+		*phiconLarge = nullptr;
 
 	dcEditColor = CreateCompatibleDC(GetDC(0));
 	dcEditMask = CreateCompatibleDC(GetDC(0));
@@ -687,7 +687,7 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 	bmi.bmiHeader.biPlanes = 1;
 	bmi.bmiHeader.biBitCount = 32;
 	bmi.bmiHeader.biCompression = BI_RGB;
-	hbm = CreateDIBSection(dcEditTemp, &bmi, DIB_RGB_COLORS, (VOID**)&pPix, NULL, 0);
+	hbm = CreateDIBSection(dcEditTemp, &bmi, DIB_RGB_COLORS, (VOID**)&pPix, nullptr, 0);
 	memset(pPix, 0x00FFFFFF, sizeof(DWORD)*sizeLarge*sizeLarge);	//initialize to white pixels, no alpha
 
 	SelectObject(dcEditColor, iconinfo.hbmColor);
@@ -787,7 +787,7 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 	DeleteBitmap(iconinfo.hbmColor);
 	DeleteBitmap(iconinfo.hbmMask);
 
-	if (*phiconLarge == NULL) {
+	if (*phiconLarge == nullptr) {
 		InvalidateIcon(phiconSmall, phiconLarge);
 		return S_FALSE;
 	}
@@ -797,11 +797,11 @@ STDMETHODIMP CShellExt::Extract(LPCTSTR /*pszFile*/, UINT /*nIconIndex*/, HICON 
 void InvalidateIcon(HICON * iconSmall, HICON * iconLarge) {
 	if (iconSmall && *iconSmall) {
 		DestroyIcon(*iconSmall);
-		*iconSmall = NULL;
+		*iconSmall = nullptr;
 	}
 	if (iconLarge && *iconLarge) {
 		DestroyIcon(*iconLarge);
-		*iconLarge = NULL;
+		*iconLarge = nullptr;
 	}
 }
 
@@ -830,7 +830,7 @@ void CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPC
 		return;
 	}
 
-	result = RegQueryValueEx(settingKey, TEXT("Path"), NULL, NULL, NULL, &regSize);
+	result = RegQueryValueEx(settingKey, TEXT("Path"), nullptr, nullptr, nullptr, &regSize);
 	if (result == ERROR_SUCCESS) {
 		bytesRequired += regSize + 2;
 	} else {
@@ -839,7 +839,7 @@ void CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPC
 	}
 
 	for (UINT i = 0; i < m_cbFiles; i++) {
-		bytesRequired += DragQueryFile((HDROP)m_stgMedium.hGlobal, i, NULL, 0);
+		bytesRequired += DragQueryFile((HDROP)m_stgMedium.hGlobal, i, nullptr, 0);
 		bytesRequired += 3;
 	}
 
@@ -853,7 +853,7 @@ void CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPC
 
 	regSize = (DWORD)MAX_PATH*sizeof(TCHAR);
 	TCHAR szFilename[MAX_PATH];
-	result = RegQueryValueEx(settingKey, TEXT("Path"), NULL, NULL, (LPBYTE)(szFilename), &regSize);
+	result = RegQueryValueEx(settingKey, TEXT("Path"), nullptr, nullptr, (LPBYTE)(szFilename), &regSize);
 	szFilename[MAX_PATH-1] = 0;
 	lstrcat(szMiamExecutableFilename, TEXT("\""));
 	lstrcat(szMiamExecutableFilename, szFilename);
@@ -895,11 +895,11 @@ void CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPC
 		si.cb = sizeof(si);
 		si.dwFlags = STARTF_USESHOWWINDOW;
 		si.wShowWindow = (WORD)iShowCmd;	//SW_RESTORE;
-		if (!CreateProcess (NULL, pszCommand, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+		if (!CreateProcess (nullptr, pszCommand, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
 			DWORD errorCode = GetLastError();
 			if (errorCode == ERROR_ELEVATION_REQUIRED) {	//Fallback to shellexecute
-				CoInitializeEx(NULL, 0);
-				HINSTANCE execVal = ShellExecute(NULL, TEXT("runas"), pszCommand, NULL, NULL, iShowCmd);
+				CoInitializeEx(nullptr, 0);
+				HINSTANCE execVal = ShellExecute(nullptr, TEXT("runas"), pszCommand, nullptr, nullptr, iShowCmd);
 				CoUninitialize();
 				if (execVal <= (HINSTANCE)32) {
 					TCHAR * message = new TCHAR[512+bytesRequired];
@@ -920,16 +920,16 @@ void CShellExt::InvokeMiamPlayer(HWND /*hParent*/, LPCSTR /*pszWorkingDir*/, LPC
 STDMETHODIMP CShellExt::LoadShellIcon(int cx, int cy, HICON * phicon)
 {
 	HRESULT hr = E_OUTOFMEMORY;
-	HICON hicon = NULL;
+	HICON hicon = nullptr;
 
 	//Either no custom defined, or failed and use fallback
-	if (hicon == NULL) {
+	if (hicon == nullptr) {
 		hicon = (HICON)LoadImage(_hModule, MAKEINTRESOURCE(IDI_ICON_MIAMPLAYER), IMAGE_ICON, cx, cy, LR_DEFAULTCOLOR);
 	}
 
-	if (hicon == NULL) {
+	if (hicon == nullptr) {
 		hr = E_OUTOFMEMORY;
-		*phicon = NULL;
+		*phicon = nullptr;
 	} else {
 		hr = S_OK;
 		*phicon = hicon;

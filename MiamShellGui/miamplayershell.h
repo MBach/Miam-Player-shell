@@ -45,7 +45,7 @@ public:
 
 	inline virtual QString version() const { return "0.2"; }
 
-	inline virtual QWidget* providesView() { return NULL; }
+	inline virtual QWidget* providesView() { return nullptr; }
 
 	virtual void setMediaPlayer(MediaPlayer *) override;
 
