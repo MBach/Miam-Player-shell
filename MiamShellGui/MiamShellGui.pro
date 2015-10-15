@@ -3,7 +3,7 @@ QT      += widgets multimedia
 TARGET   = $$qtLibraryTarget(MiamShellGui)
 TEMPLATE = lib
 
-MiamPlayerBuildDirectory = C:\dev\Miam-Player-build-x64\MiamPlayer
+MiamPlayerBuildDirectory = C:\dev\Miam-Player-build\qt5.5.1\MiamPlayer
 
 DEFINES += MIAM_PLUGIN
 DEFINES += MIAM_PLUGIN_DLL
@@ -21,23 +21,22 @@ CONFIG(release, debug|release) {
 
 INSTALLS += target
 
-HEADERS += basicplugin.h \
+HEADERS += interfaces/basicplugin.h \
+    interfaces/mediaplayerplugin.h \
     filehelper.h \
     listwidget.h \
     mediaplaylist.h \
     mediaplayer.h \
-    mediaplayerplugin.h \
     miamcore_global.h \
     miamplayershell.h \
     settings.h
 
-SOURCES += miamplayershell.cpp \
-    listwidget.cpp
+SOURCES += listwidget.cpp \
+    miamplayershell.cpp
 
 FORMS += config.ui
 
-RESOURCES += \
-    resources.qrc
+RESOURCES += resources.qrc
 
 TRANSLATIONS += translations/MiamPlayerShell_ar.ts \
     translations/MiamPlayerShell_cs.ts \

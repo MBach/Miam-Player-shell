@@ -3,18 +3,16 @@
 
 #include <QMediaPlayer>
 #include "mediaplaylist.h"
-
 #include "miamcore_global.h"
 
-class RemoteMediaPlayer;
+class IMediaPlayer;
 
-class VlcInstance;
-class VlcMedia;
-class VlcMediaPlayer;
-struct libvlc_media_t;
+namespace QtAV {
+	class AVPlayer;
+}
 
 /**
- * \brief The MediaPlayer class is a central class which controls local and remote sources.
+ * \brief		The MediaPlayer class is a central class which controls local and remote sources.
  * \details
  * \author      Matthieu Bachelier
  * \copyright   GNU General Public License v3
@@ -26,22 +24,16 @@ private:
 	MediaPlaylist *_playlist;
 	QMediaPlayer::State _state;
 
-	VlcInstance *_instance;
-	VlcMedia *_media;
-	VlcMediaPlayer *_player;
-	RemoteMediaPlayer *_remotePlayer;
+	QtAV::AVPlayer *_localPlayer;
+	IMediaPlayer *_remotePlayer;
 
-	QMap<QString, RemoteMediaPlayer*> _remotePlayers;
+	QMap<QString, IMediaPlayer*> _remotePlayers;
 	bool _stopAfterCurrent;
 
-	/** The unique instance of this class. */
-	static MediaPlayer *_mediaPlayer;
-
-	explicit MediaPlayer(QObject *parent = 0);
 public:
-	static MediaPlayer *instance();
+	explicit MediaPlayer(QObject *parent = 0);
 
-	void addRemotePlayer(RemoteMediaPlayer *remotePlayer);
+	void addRemotePlayer(IMediaPlayer *remotePlayer);
 
 	void changeTrack(const QMediaContent &mediaContent);
 
@@ -51,7 +43,7 @@ public:
 
 	inline MediaPlaylist * playlist() { return _playlist; }
 
-	void seek(float pos);
+	void seek(qreal pos);
 
 	/** Set mute on or off. */
 	void setMute(bool b) const;
@@ -60,24 +52,16 @@ public:
 
 	void setState(QMediaPlayer::State state);
 
-	void setTime(qint64 t) const;
-
-	void setVolume(int v);
+	void setVolume(qreal v);
 
 	inline QMediaPlayer::State state() const { return _state; }
 
-	qint64 time() const;
-
-private:
-	void createLocalConnections();
-
-	void createRemoteConnections(const QUrl &track);
-
-	/** Current duration of the media, in ms. */
-	qint64 duration();
-
 	/** Play track directly in the player, without playlist. */
 	void playMediaContent(const QMediaContent &mc);
+
+private:
+	/** Current duration of the media, in ms. */
+	qint64 duration();
 
 	/** Current position in the media, percent-based. */
 	float position() const;
@@ -108,9 +92,6 @@ public slots:
 
 	/** Activate or desactive audio output. */
 	void toggleMute() const;
-
-private slots:
-	void convertMedia(libvlc_media_t *);
 
 signals:
 	void currentMediaChanged(const QString &uri);
