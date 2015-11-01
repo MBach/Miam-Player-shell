@@ -16,7 +16,7 @@
  * \version     0.1
  * \copyright   GNU General Public License v3
  */
-class MIAMCORE_LIBRARY MiamPlayerShell : public QWidget, public MediaPlayerPlugin
+class MIAMCORE_LIBRARY MiamPlayerShell : public MediaPlayerPlugin
 {
 	Q_OBJECT
 	Q_PLUGIN_METADATA(IID MediaPlayerPlugin_iid)
@@ -27,7 +27,7 @@ private:
 	MediaPlayer *_mediaPlayer;
 
 public:
-	MiamPlayerShell();
+	MiamPlayerShell(QObject *parent = nullptr);
 
 	virtual ~MiamPlayerShell();
 

@@ -31,13 +31,7 @@ void ListWidget::paintEvent(QPaintEvent *)
 	QStylePainter p(this->viewport());
 	static const int itemHeight = 22;
 
-	p.fillRect(viewport()->rect(), QColor(240, 240, 240));
-
-	// Vertical frame between icons and text
-	p.save();
-	p.setPen(QApplication::palette().midlight().color());
-	p.drawLine(33, 0, 33, rect().height());
-	p.restore();
+	p.fillRect(viewport()->rect(), QColor(255, 255, 255));
 
 	// Subdirectories in the popup menu
 	int h = 0;

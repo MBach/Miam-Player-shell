@@ -6,8 +6,8 @@
 
 #include <QtDebug>
 
-MiamPlayerShell::MiamPlayerShell()
-	: QWidget(nullptr)
+MiamPlayerShell::MiamPlayerShell(QObject *parent)
+	: MediaPlayerPlugin(parent)
 {}
 
 MiamPlayerShell::~MiamPlayerShell()
@@ -29,7 +29,7 @@ void MiamPlayerShell::init()
 
 QWidget* MiamPlayerShell::configPage()
 {
-	QWidget *widget = new QWidget(this);
+	QWidget *widget = new QWidget;
 	_config.setupUi(widget);
 
 	// Add items

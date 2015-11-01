@@ -4,9 +4,17 @@
 #include "basicplugin.h"
 #include "mediaplayer.h"
 
+/**
+ * \brief		The MediaPlayerPlugin class
+ * \author      Matthieu Bachelier
+ * \copyright   GNU General Public License v3
+ */
 class MIAMCORE_LIBRARY MediaPlayerPlugin : public BasicPlugin
 {
+	Q_OBJECT
 public:
+	MediaPlayerPlugin(QObject *parent = nullptr) : BasicPlugin(parent) {}
+
 	virtual ~MediaPlayerPlugin() {}
 
 	virtual QWidget* providesView() = 0;
