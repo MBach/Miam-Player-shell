@@ -3,7 +3,7 @@ QT      += widgets multimedia
 TARGET   = $$qtLibraryTarget(MiamShellGui)
 TEMPLATE = lib
 
-MiamPlayerBuildDirectory = C:\dev\Miam-Player-build\qt5.6.0\MiamPlayer
+MiamPlayerBuildDirectory = C:\dev\Miam-Player-build\MiamPlayer
 
 DEFINES += MIAM_PLUGIN
 DEFINES += MIAM_PLUGIN_DLL
