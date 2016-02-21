@@ -1,9 +1,9 @@
-QT -= gui
+QT	-= gui
 
 TARGET   = $$qtLibraryTarget(MiamPlayerShell)
 TEMPLATE = lib
 
-MiamPlayerBuildDirectory = C:\dev\Miam-Player-build\MiamPlayer
+MiamPlayerBuildDirectory = C:\dev\Miam-Player-build\src\Player
 
 DEFINES += MIAM_PLUGIN
 

@@ -13,21 +13,21 @@ FILEFLAGS 0x0L
  FILETYPE 0x2L
  FILESUBTYPE 0x0L
 BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
+	BLOCK "StringFileInfo"
+	BEGIN
 	BLOCK "040904b0"
 	BEGIN
-	    VALUE "FileDescription", "ShellHandler for MiamPlayer"
-	    VALUE "FileVersion", "1.0"
-	    VALUE "LegalCopyright", "Copyleft 2014 Matthieu Bachelier"
-	    VALUE "OriginalFilename", "MiamPlayerShell.dll"
-	    VALUE "ProductVersion", "1.0"
+		VALUE "FileDescription", "ShellHandler for MiamPlayer"
+		VALUE "FileVersion", "1.0"
+		VALUE "LegalCopyright", "Copyleft 2016 Matthieu Bachelier"
+		VALUE "OriginalFilename", "MiamPlayerShell.dll"
+		VALUE "ProductVersion", "1.0"
 	END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
+	END
+	BLOCK "VarFileInfo"
+	BEGIN
 	VALUE "Translation", 0x409, 1200
-    END
+	END
 END
 
 
@@ -35,7 +35,7 @@ END
 //
 // Icon
 //
-IDI_ICON_MIAMPLAYER          ICON                    "..\\miamPlayerIcon.ico"
+IDI_ICON_MIAMPLAYER          ICON                    "..\\mp.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -46,15 +46,15 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "MiamPlayerShell Settings"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Context Menu",IDC_STATIC,6,6,132,114
-    CONTROL         "Add context menu item",IDC_CHECK_USECONTEXT,"Button",BS_AUTO3STATE | WS_TABSTOP,18,24,90,10
-    //CONTROL         "Show icon",IDC_CHECK_CONTEXTICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,42,48,10
-    LTEXT           "Menu text",IDC_STATIC,18,54,34,8
-    EDITTEXT        IDC_EDIT_MENU,24,66,102,14,ES_AUTOHSCROLL
-    LTEXT           "Command line params",IDC_STATIC,18,84,70,8
-    EDITTEXT        IDC_EDIT_COMMAND,24,96,102,14,ES_AUTOHSCROLL
-    GROUPBOX        "Dynamic Icon",IDC_STATIC,144,6,132,114
-    CONTROL         "Show dynamic icon",IDC_CHECK_USEICON,"Button",BS_AUTO3STATE | WS_TABSTOP,156,24,76,10
-    CONTROL         "Show extension",IDC_CHECK_ISDYNAMIC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,156,42,67,10
-    DEFPUSHBUTTON   "OK",IDOK,222,126,50,14
+	GROUPBOX        "Context Menu",IDC_STATIC,6,6,132,114
+	CONTROL         "Add context menu item",IDC_CHECK_USECONTEXT,"Button",BS_AUTO3STATE | WS_TABSTOP,18,24,90,10
+	//CONTROL         "Show icon",IDC_CHECK_CONTEXTICON,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,42,48,10
+	LTEXT           "Menu text",IDC_STATIC,18,54,34,8
+	EDITTEXT        IDC_EDIT_MENU,24,66,102,14,ES_AUTOHSCROLL
+	LTEXT           "Command line params",IDC_STATIC,18,84,70,8
+	EDITTEXT        IDC_EDIT_COMMAND,24,96,102,14,ES_AUTOHSCROLL
+	GROUPBOX        "Dynamic Icon",IDC_STATIC,144,6,132,114
+	CONTROL         "Show dynamic icon",IDC_CHECK_USEICON,"Button",BS_AUTO3STATE | WS_TABSTOP,156,24,76,10
+	CONTROL         "Show extension",IDC_CHECK_ISDYNAMIC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,156,42,67,10
+	DEFPUSHBUTTON   "OK",IDOK,222,126,50,14
 END

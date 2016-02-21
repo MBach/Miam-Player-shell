@@ -33,15 +33,15 @@ private:
 	bool _stopAfterCurrent;
 
 public:
-	explicit MediaPlayer(QObject *parent = 0);
+	explicit MediaPlayer(QObject *parent = nullptr);
 
 	void addRemotePlayer(IMediaPlayer *remotePlayer);
 
-	void changeTrack(const QMediaContent &mediaContent);
-
-	void changeTrack(MediaPlaylist *playlist, int trackIndex);
+	/** Current duration of the media, in ms. */
+	qint64 duration();
 
 	inline bool isStopAfterCurrent() const { return _stopAfterCurrent; }
+	inline void setStopAfterCurrent(bool b) { _stopAfterCurrent = b; }
 
 	inline MediaPlaylist * playlist() { return _playlist; }
 
@@ -62,9 +62,6 @@ public:
 	void playMediaContent(const QMediaContent &mc);
 
 private:
-	/** Current duration of the media, in ms. */
-	qint64 duration();
-
 	/** Current position in the media, percent-based. */
 	float position() const;
 
@@ -94,6 +91,12 @@ public slots:
 
 	/** Activate or desactive audio output. */
 	void toggleMute() const;
+
+	/** Play or pause current track in the playlist depending of the state of the player. */
+	void togglePlayback();
+
+private:
+	void resume();
 
 signals:
 	void currentMediaChanged(const QString &uri);

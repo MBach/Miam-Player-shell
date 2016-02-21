@@ -13,7 +13,7 @@
 /**
  * \brief       The MiamPlayerShell class is a specific plugin for Windows which extends the Shell
  * \author      Matthieu Bachelier
- * \version     0.1
+ * \version     0.3
  * \copyright   GNU General Public License v3
  */
 class MIAMCORE_LIBRARY MiamPlayerShell : public MediaPlayerPlugin
@@ -24,28 +24,38 @@ class MIAMCORE_LIBRARY MiamPlayerShell : public MediaPlayerPlugin
 
 private:
 	Ui::MiamPlayerShellConfigPage _config;
-	MediaPlayer *_mediaPlayer;
+	MediaPlayerControl *_mediaPlayerControl;
 
 public:
-	MiamPlayerShell(QObject *parent = nullptr);
+	explicit MiamPlayerShell(QObject *parent = nullptr);
 
 	virtual ~MiamPlayerShell();
 
 	virtual void cleanUpBeforeDestroy();
 
+	/** Reimplemented from BasicPlugin. */
 	virtual QWidget* configPage();
 
-	inline virtual QStringList extensions() const { return QStringList(); }
+	/** Reimplemented from MediaPlayerPlugin. */
+	virtual QStringList extensions() const override { return QStringList(); }
 
-	virtual void init();
+	/** Reimplemented from BasicPlugin. */
+	virtual void init() override;
 
-	inline virtual bool isConfigurable() const { return true; }
+	/** Reimplemented from BasicPlugin. */
+	inline virtual bool isConfigurable() const override { return true; }
 
+	/** Reimplemented from MediaPlayerPlugin. */
+	inline virtual bool hasView() const override { return false; }
+
+	/** Reimplemented from BasicPlugin. */
 	inline virtual QString name() const { return "MiamPlayerShell"; }
 
-	inline virtual QString version() const { return "0.2"; }
+	/** Reimplemented from BasicPlugin. */
+	inline virtual QString version() const { return "0.3"; }
 
-	virtual void setMediaPlayer(MediaPlayer *) override;
+	/** Reimplemented from MediaPlayerPlugin. */
+	virtual void setMediaPlayerControl(MediaPlayerControl *) override;
 
 private:
 	/** Adjust height of fake Context Menu. */

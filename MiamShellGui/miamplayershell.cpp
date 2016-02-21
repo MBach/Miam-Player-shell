@@ -8,6 +8,7 @@
 
 MiamPlayerShell::MiamPlayerShell(QObject *parent)
 	: MediaPlayerPlugin(parent)
+	, _mediaPlayerControl(nullptr)
 {}
 
 MiamPlayerShell::~MiamPlayerShell()
@@ -81,9 +82,9 @@ QWidget* MiamPlayerShell::configPage()
 	}
 
 	// Hide last item
-	/*if (!settings->value("MiamPlayerShell/addToLibrary", 0).toInt()) {
-		_config.addToLibrary->toggle();
-	}*/
+//	if (!settings->value("MiamPlayerShell/addToLibrary", 0).toInt()) {
+//		_config.addToLibrary->toggle();
+//	}
 
 	for (QCheckBox *checkBox : _config.actionsGroupBox->findChildren<QCheckBox*>()) {
 		settings->setValue("MiamPlayerShell/" + checkBox->objectName(), checkBox->text());
@@ -194,7 +195,7 @@ void MiamPlayerShell::toggleSubMenu(bool disabled)
 	this->resizeListWidget(_config.subMenu);
 }
 
-void MiamPlayerShell::setMediaPlayer(MediaPlayer *mediaPlayer)
+void MiamPlayerShell::setMediaPlayerControl(MediaPlayerControl *mpc)
 {
-	_mediaPlayer = mediaPlayer;
+	_mediaPlayerControl = mpc;
 }
